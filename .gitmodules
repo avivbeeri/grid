@@ -1,0 +1,6 @@
+[submodule "src/lib/wren"]
+	path = src/lib/wren
+	url = https://github.com/munificent/wren.git
+[submodule "engine"]
+	path = engine
+	url = git@github.com:avivbeeri/dome.git
