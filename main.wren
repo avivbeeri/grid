@@ -30,16 +30,57 @@ class Game {
 }
 
 class Entity {
-  construct new() {
-    if (__id == null) {
-      __id = 0
-    }
-    _id = __id
-    __id = __id + 1
+  construct new(id) {
+    _id = id
+    _componentSet = {}
   }  
 
   id { _id }
+  hasComponent(componentType) {
+    return _componentSet.containsKey(componentType)
+  }
 }
+
+class EntityManager {
+  static reset() {
+    __nextId = 0
+    __entities = []
+  }
+   
+  static new() {
+    var entity = Entity.new(__nextId) 
+    __entities.insert(__nextId, entity)
+    __nextId = __nextId + 1
+    
+    return entity
+  }  
+}
+
+class Component {
+  construct new(id) {
+    _id = id
+  }
+  id { _id }
+}
+
+class PositionComponent is Component {}
+
+
+class ComponentManager {
+  construct init(ComponentClass) {
+    if (!(ComponentClass is Component)) {
+      Fiber.abort("Tried to initialise a componentManager but without a component")
+    }  
+    _ComponentClass = ComponentClass  
+    _components = {}
+  }
+
+  components { _components } 
+  addToEntity(entity) {
+    _components[entity.id] = ComponentClass.new(entity.id)  
+  }
+}
+
 
 class MainGame {
   static next { __next}
@@ -47,6 +88,10 @@ class MainGame {
   static init() {
     __next = null
     __t = 0
+    EntityManager.reset()
+    
+    __shipEntity = EntityManager.new()
+    System.print(__shipEntity.id)
   }
 
   static update() {
