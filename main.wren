@@ -7,7 +7,10 @@ import "io" for FileSystem
 import "./gameover" for GameOverState
 import "./util" for Box
 
-import "./entity" for Entity
+import "./ecs/entity" for Entity
+import "./ecs/component" for Component
+import "./ecs/gamesystem" for GameSystem
+import "./ecs/world" for World
 
 
 // -------------------------
@@ -30,84 +33,6 @@ class Game {
   }
 }
 
-
-class World {
-  construct new() {
-    _manager = EntityManager.init()
-    _systems = []
-    _renderSystems = []
-    _componentManagers = {}
-  }
-  entities { _manager.entities }
-
-  newEntity() {
-    return _manager.new()
-  }
-
-  addSystem(systemType) {
-    _systems.add(systemType.init(this))
-  }
-
-  addRenderSystem(systemType) {
-    _renderSystems.add(systemType.init(this))
-  }
-
-  addComponentManager(componentType) {
-    _componentManagers[componentType] = ComponentManager.new(componentType)
-  }
-
-  addComponentsToEntity(entity, componentTypes) {
-    if (entity is Entity) {
-      for (componentType in componentTypes) {
-        _componentManagers[componentType].add(entity)
-      }
-    } 
-  }
-
-  entityHasComponent(entity, componentType) {
-    return _componentManagers[componentType].has(entity)
-  }
-
-  getComponentFromEntity(entity, componentType) {
-    return _componentManagers[componentType][entity]
-  }
-
-  update() {
-    for (system in _systems) {
-      system.update()
-    }
-  }
-  render() {
-    for (system in _renderSystems) {
-      system.update()
-    }
-  }
-}
-
-class EntityManager {
-  construct init() {
-    _nextId = 1
-    _entities = []
-  }
-   
-  new() {
-    var entity = Entity.new(_nextId) 
-    _entities.add(entity)
-    _nextId = _nextId + 1
-    
-    return entity
-  }  
-
-  entities { _entities }
-}
-
-class Component {
-  construct new(id) {
-    _id = id
-  }
-  id { _id }
-}
-
 class PositionComponent is Component {
   construct new(id) { 
     super(id) 
@@ -124,78 +49,14 @@ class PositionComponent is Component {
   y=(i) { _position = Point.new(_position.x, i)}
 }
 
-
-class ComponentManager {
-  construct new(ComponentClass) {
-    _ComponentClass = ComponentClass  
-    _components = {}
-  }
-
-  components { _components } 
-  add(entity) {
-    if (entity is Entity && entity.id is Num) {
-      _components[entity.id] = _ComponentClass.new(entity.id)  
-    }
-  }
-
-  has(entity) {
-    return _components.containsKey(entity.id)
-  }
-
-  remove(entity) {
-    return _components.remove(entity.id)
-  }
-  [index] {
-    if (index is Num) {
-      return _components[index]
-    } else if (index is Entity) {
-      return _components[index.id]
-    }
-  }
-
-  iterate(i) {
-    return _components.keys.iterate(i)  
-  }
-
-  iteratorValue(key) {
-    return _components[_components.keys.iteratorValue(key)]
-  }
-}
-
-class GameSystem {
-  construct init(world, requires) { 
-    _world = world 
-    _requires = requires
-  }
-  world { _world }
-  update() {}
-  entities {
-    // TODO: Redo this function
-    var allowedEntities = []
-    for (entity in world.entities) {
-      var resultSize = 0
-      for (type in _requires) {
-        if (world.entityHasComponent(entity, type)) {
-          resultSize = resultSize + 1
-        }
-      }
-      if (resultSize == _requires.count) {
-        allowedEntities.add(entity)
-      } 
-    }
-    return allowedEntities
-  }
-}
-
 class ScrollSystem is GameSystem {
   construct init(world) {
     super(world, [PositionComponent])
   }
   update() {
     for (entity in entities) {
-      var position = world.getComponentFromEntity(entity, PositionComponent)
+      var position = entity.getComponent(PositionComponent)
       position.x = (position.x + 1) % Canvas.width
-     
     }
   }
 }
@@ -213,7 +74,8 @@ class RenderSystem is GameSystem {
   update() {
     Canvas.cls()
     for (entity in entities) {
-      var position = world.getComponentFromEntity(entity, PositionComponent)
+      var position = entity.getComponent(PositionComponent)
+      var rect = entity.getComponent(RectComponent)
       Canvas.rectfill(position.x, position.y, 5, 5, Color.white)
     }
   }
@@ -231,7 +93,7 @@ class MainGame {
     __world.addComponentManager(PositionComponent)
     __world.addComponentManager(RectComponent)
     __ship = __world.newEntity()
-    __world.addComponentsToEntity(__ship, [PositionComponent, RectComponent])
+    __ship.addComponents([PositionComponent, RectComponent])
   }
 
   static update() {
