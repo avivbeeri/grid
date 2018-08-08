@@ -1,3 +1,5 @@
+import "./ecs/component" for Component
+
 class Entity {
   construct new(world, id) {
     _world = world
@@ -20,5 +22,9 @@ class Entity {
 
   hasComponent(componentType) {
     return _world.entityHasComponent(this, componentType)
+  }
+
+  setComponent(component) {
+    return _world.setComponentOfEntity(this, component)
   }
 }

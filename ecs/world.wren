@@ -29,14 +29,15 @@ class World {
   addComponentsToEntity(entity, componentTypes) {
     if (entity is Entity) {
       for (componentType in componentTypes) {
-        addComponentToEntity(entity, componentType)
+        if (Component.isComponentType(componentType)) {
+          addComponentToEntity(entity, componentType)
+        }
       }
     } 
   }
 
   addComponentToEntity(entity, componentType) {
     if (entity is Entity && _componentManagers.containsKey(componentType)) {
-     System.print(componentType)
       _componentManagers[componentType].add(entity)
     } 
   }
@@ -47,6 +48,10 @@ class World {
 
   getComponentFromEntity(entity, componentType) {
     return _componentManagers[componentType][entity]
+  }
+
+  setComponentOfEntity(entity, component) {
+    _componentManagers[component.type][entity] = component
   }
 
   update() {
@@ -87,7 +92,7 @@ class ComponentManager {
 
   components { _components } 
   add(entity) {
-    if (entity is Entity && entity.id is Num) {
+    if (entity is Entity) {
       _components[entity.id] = _ComponentClass.new(entity.id)  
     }
   }
@@ -99,6 +104,7 @@ class ComponentManager {
   remove(entity) {
     return _components.remove(entity.id)
   }
+
   [index] {
     if (index is Num) {
       return _components[index]
@@ -107,6 +113,17 @@ class ComponentManager {
     }
   }
 
+  [index]=(value) {
+    if (value.type == _ComponentClass) {
+      if (index is Num) {
+        _components[index] = value
+      } else if (index is Entity) {
+        _components[index.id] = value
+      }
+    }
+  }
+
+  // Iterator protocol implementation
   iterate(i) {
     return _components.keys.iterate(i)  
   }

@@ -64,7 +64,15 @@ class ScrollSystem is GameSystem {
 class RectComponent is Component {
   construct new(id) { 
     super(id) 
+    _color = Color.white
   }
+
+  construct new(id, color) { 
+    super(id) 
+    _color = color
+  }
+
+  color { _color }
 }
 
 class RenderSystem is GameSystem {
@@ -76,7 +84,7 @@ class RenderSystem is GameSystem {
     for (entity in entities) {
       var position = entity.getComponent(PositionComponent)
       var rect = entity.getComponent(RectComponent)
-      Canvas.rectfill(position.x, position.y, 5, 5, Color.white)
+      Canvas.rectfill(position.x, position.y, 5, 5, rect.color)
     }
   }
 }
