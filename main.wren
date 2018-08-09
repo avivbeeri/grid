@@ -57,6 +57,8 @@ class ScrollSystem is GameSystem {
     for (entity in entities) {
       var position = entity.getComponent(PositionComponent)
       position.x = (position.x + 1) % Canvas.width
+      if (position.x > Canvas.width/2) {
+      }
     }
   }
 }
@@ -64,15 +66,30 @@ class ScrollSystem is GameSystem {
 class RectComponent is Component {
   construct new(id) { 
     super(id) 
-    _color = Color.white
+    setValues(Color.white, 5, 5)
   }
 
   construct new(id, color) { 
     super(id) 
+    setValues(color, 5, 5)
+  }
+
+  construct new(id, color, w, h) { 
+    super(id) 
     _color = color
+    _width = w
+    _height = h
+  }
+
+  setValues(color, w, h) {
+    _color = color
+    _width = w
+    _height = h
   }
 
   color { _color }
+  width { _width }
+  height { _height }
 }
 
 class RenderSystem is GameSystem {
@@ -84,7 +101,7 @@ class RenderSystem is GameSystem {
     for (entity in entities) {
       var position = entity.getComponent(PositionComponent)
       var rect = entity.getComponent(RectComponent)
-      Canvas.rectfill(position.x, position.y, 5, 5, rect.color)
+      Canvas.rectfill(position.x, position.y, rect.width, rect.height, rect.color)
     }
   }
 }
@@ -100,8 +117,10 @@ class MainGame {
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
     __world.addComponentManager(RectComponent)
+
     __ship = __world.newEntity()
     __ship.addComponents([PositionComponent, RectComponent])
+    __ship.setComponent(RectComponent.new(__ship.id, Color.white, 16, 32))
   }
 
   static update() {

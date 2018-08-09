@@ -27,4 +27,8 @@ class Entity {
   setComponent(component) {
     return _world.setComponentOfEntity(this, component)
   }
+
+  removeComponent(component) {
+    return _world.removeComponentFromEntity(this, component)
+  }
 }

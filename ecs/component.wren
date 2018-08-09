@@ -9,7 +9,6 @@ class Component {
     if (classObject is Class) {
       var type = classObject
       while (type != Object) {
-        System.print(type)
         type = type.supertype
         if (type == Component) {
           return true

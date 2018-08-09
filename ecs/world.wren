@@ -14,6 +14,13 @@ class World {
     return _manager.new()
   }
 
+  removeEntity(entity) {
+    for (componentManager in _componentManagers) {
+      componentManager.remove(entity)
+    }
+    _manager.remove(entity)
+  }
+
   addSystem(systemType) {
     _systems.add(systemType.init(this))
   }
@@ -50,6 +57,14 @@ class World {
     return _componentManagers[componentType][entity]
   }
 
+  removeComponentFromEntity(entity, component) {
+    if (component is Class && Component.isComponentType(component)) {
+      return _componentManagers[component].remove(entity)
+    } else if (component is Component) {
+      return _componentManagers[component.type].remove(entity)
+    }
+  }
+
   setComponentOfEntity(entity, component) {
     _componentManagers[component.type][entity] = component
   }
@@ -59,6 +74,7 @@ class World {
       system.update()
     }
   }
+
   render() {
     for (system in _renderSystems) {
       system.update()
@@ -69,19 +85,23 @@ class World {
 class EntityManager {
   construct init(world) {
     _nextId = 1
-    _entities = []
+    _entities = {}
     _world = world
   }
    
   new() {
     var entity = Entity.new(_world, _nextId) 
-    _entities.add(entity)
+    _entities[entity.id] = entity
     _nextId = _nextId + 1
     
     return entity
   }  
 
-  entities { _entities }
+  remove(entity) {
+    return _entities.remove(entity.id)
+  }
+
+  entities { _entities.values.toList }
 }
 
 class ComponentManager {
