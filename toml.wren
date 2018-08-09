@@ -81,6 +81,12 @@ class TomlScanner {
     return source[_current - 1]
   }
 
+  addToken(type, literal) {
+    var text = 
+    _tokens.add(Token.new(type, text, literal, _line))
+    
+  }
+
   isAtEnd() {
     return _current >= _source.count
   }
