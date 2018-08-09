@@ -56,6 +56,11 @@ class PlayerControlComponent is Component {
     super(id) 
   }
 }
+class TileComponent is Component {
+  construct new(id) { 
+    super(id) 
+  }
+}
 
 class EnemyAIComponent is Component {
   construct new(id) { 
@@ -70,6 +75,23 @@ class EnemyAIComponent is Component {
   t=(v) { _t = v } 
   dir { _dir }
   dir=(v) { _dir = v }
+}
+class TileSystem is GameSystem {
+  construct init(world) {
+    super(world, [TileComponent, RectComponent])
+    _t = 0
+  }
+
+  update() {
+    _t = _t + 1
+    if (_t > 60) {
+      _t = 0
+      for (entity in entities) {
+        var rect = entity.getComponent(RectComponent)
+        rect.setValues(rect.color == Color.white ? Color.black : Color.white, 8, 8)
+      }
+    }
+  }
 }
 
 class EnemyAISystem is GameSystem {
@@ -206,16 +228,29 @@ class MainGame {
     __world = World.new()
     __world.addSystem(PlayerControlSystem)
     __world.addSystem(EnemyAISystem)
+    __world.addSystem(TileSystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
     __world.addComponentManager(EnemyAIComponent)
     __world.addComponentManager(PlayerControlComponent)
     __world.addComponentManager(RectComponent)
+    __world.addComponentManager(TileComponent)
 
     // Create player
     __player = __world.newEntity()
     __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent])
     __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
+
+    for (y in 0...(Canvas.height/8)) {
+      for (x in 0...(Canvas.width/8)) {
+        var tile = __world.newEntity()
+        tile.addComponents([PositionComponent, RectComponent, TileComponent])
+        tile.setComponent(RectComponent.new(__player.id, Color.white, 8, 8))
+        tile.getComponent(PositionComponent).x = x * 8
+        tile.getComponent(PositionComponent).y = y * 8
+      }
+    }
+    // Create player
 
     // Enemy
     __enemy = __world.newEntity()
