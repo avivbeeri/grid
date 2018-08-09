@@ -12,6 +12,8 @@ import "./ecs/component" for Component
 import "./ecs/gamesystem" for GameSystem
 import "./ecs/world" for World
 
+var Yellow = Color.rgb(255, 162, 00, 00)
+
 
 // -------------------------
 // ------- GAME CODE -------
@@ -47,6 +49,93 @@ class PositionComponent is Component {
   y { _position.y }
   x=(i) { _position = Point.new(i, _position.y)}
   y=(i) { _position = Point.new(_position.x, i)}
+}
+
+class PlayerControlComponent is Component {
+  construct new(id) { 
+    super(id) 
+  }
+}
+
+class EnemyAIComponent is Component {
+  construct new(id) { 
+    super(id) 
+    _mode = "horizontal"
+    _t = 0
+    _dir = 1
+  }
+  mode { _mode }
+  mode=(v) { _mode = v }
+  t { _t } 
+  t=(v) { _t = v } 
+  dir { _dir }
+  dir=(v) { _dir = v }
+}
+
+class EnemyAISystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, EnemyAIComponent])
+  }
+
+  update() {
+    for (entity in entities) {
+      var position = entity.getComponent(PositionComponent)
+      var ai = entity.getComponent(EnemyAIComponent)
+      if (ai.mode == "horizontal") {
+        position.x = position.x + ai.dir
+        if ((ai.dir > 0 && position.x >= Canvas.width-8) || (ai.dir < 1 && position.x <= 0)) {
+          ai.mode = "vertical"
+        }
+      } else if (ai.mode == "vertical") {
+        position.y = position.y + 1
+        ai.t = ai.t + 1
+        if (ai.t >= 32) {
+          ai.mode = "horizontal"
+          ai.dir = -ai.dir
+          ai.t = 0
+        }
+        if (position.y >= Canvas.height - 8) {
+          ai.dir = -ai.dir
+          ai.t = 0
+          ai.mode = "reverse"
+        }
+      } else if (ai.mode == "reverse") {
+        position.y = position.y - 1
+        if (position.y <= 0) {
+          ai.mode = "horizontal"
+        }
+      }
+    }
+  }
+}
+
+class PlayerControlSystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, PlayerControlComponent])
+  }
+
+  update() {
+    for (entity in entities) {
+      var position = entity.getComponent(PositionComponent)
+      var x = 0
+      var y = 0
+
+      if (Keyboard.isKeyDown("left")) {
+        x = -1
+      } else if (Keyboard.isKeyDown("right")) {
+        x = 1
+      } else if (Keyboard.isKeyDown("up")) {
+        y = -1
+      } else if (Keyboard.isKeyDown("down")) {
+        y = 1
+      }
+      if (Keyboard.isKeyDown("space")) {
+      }
+
+      position.x = position.x + x
+      position.y = position.y + y
+    }
+  }
 }
 
 class ScrollSystem is GameSystem {
@@ -112,37 +201,31 @@ class MainGame {
   static init() {
     __next = null
     __t = 0
+
+    // World system setup
     __world = World.new()
-    __world.addSystem(ScrollSystem)
+    __world.addSystem(PlayerControlSystem)
+    __world.addSystem(EnemyAISystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
+    __world.addComponentManager(EnemyAIComponent)
+    __world.addComponentManager(PlayerControlComponent)
     __world.addComponentManager(RectComponent)
 
-    __ship = __world.newEntity()
-    __ship.addComponents([PositionComponent, RectComponent])
-    __ship.setComponent(RectComponent.new(__ship.id, Color.white, 16, 32))
+    // Create player
+    __player = __world.newEntity()
+    __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent])
+    __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
+
+    // Enemy
+    __enemy = __world.newEntity()
+    __enemy.addComponents([PositionComponent, RectComponent, EnemyAIComponent])
+    __enemy.setComponent(RectComponent.new(__enemy.id, Yellow, 8,8))
+    __enemy.getComponent(PositionComponent).y = 50
   }
 
   static update() {
     __t = __t + 1
-    var x = 0
-    var y = 0
-
-    if (Keyboard.isKeyDown("left")) {
-      x = -1
-    }
-    if (Keyboard.isKeyDown("right")) {
-      x = 1
-    }
-    if (Keyboard.isKeyDown("up")) {
-      y = -1
-    }
-    if (Keyboard.isKeyDown("down")) {
-      y = 1
-    }
-    if (Keyboard.isKeyDown("space")) {
-    }
-
     __world.update()
   }
 

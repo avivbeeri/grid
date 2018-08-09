@@ -1,5 +1,6 @@
 import "./ecs/component" for Component
 
+// Behaves like the EntityHandle in the Nomad engine
 class Entity {
   construct new(world, id) {
     _world = world
