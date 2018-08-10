@@ -4,6 +4,8 @@ import "audio" for AudioEngine
 import "random" for Random
 import "io" for FileSystem
 
+import "./toml" for Toml
+
 import "./gameover" for GameOverState
 import "./util" for Box
 
@@ -20,6 +22,8 @@ class Game {
   static init() {
     __state = MainGame
     __state.init()
+    
+    Toml.run("[54]\ntest = \"\"\"helll\\no\"\"\"")
   }
   static update() {
     __state.update()
