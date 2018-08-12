@@ -18,6 +18,7 @@ class TomlToken {
   static DOT { "DOT" }
   static EOF { "EOF" }
   static MINUS { "MINUS" }
+  static NEWLINE { "NEWLINE" }
 
   static BASIC_STRING { "BASIC_STRING" }
   static LITERAL_STRING { "LITERAL_STRING" }
@@ -89,10 +90,11 @@ class TomlScanner {
       addToken(TomlToken.COMMA) 
     } else if (char == "-") {
       addToken(TomlToken.MINUS) 
-    } else if (char == " " || char == "\r" || char == "\t") {
+    } else if (char == " " || char == "\t") {
       // Ignore whitespace and move on
-    } else if (char == "\n") {
+    } else if (char == "\n" || char == "\r" && match("\n")) {
       _line = _line + 1
+      addToken(TomlToken.NEWLINE) 
     } else if (char == "#") {
       while (peek() != "\n" && !isAtEnd()) {
         advance()
@@ -129,7 +131,7 @@ class TomlScanner {
   string(quoteType) {
     // TODO: Support non-basic and multi-line strings
     var type = quoteType == "\"" ? TomlToken.BASIC_STRING : TomlToken.LITERAL_STRING
-    var size = quoteType == "\"" ? 1 : 3
+    var size = 1
     var trim = 0
 
     var escapes = {
@@ -145,6 +147,7 @@ class TomlScanner {
     }
     if (peek() == quoteType && peekNext() == quoteType) {
       type = quoteType == "\"" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
+      size = 3
       advance()
       advance()
       if (peek() == "\n") {
@@ -304,7 +307,7 @@ class TomlScanner {
     if (isAtEnd()) {
       return false
     }
-    if (source[_current] != expected) {
+    if (_source[_current] != expected) {
       return false
     }
 

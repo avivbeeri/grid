@@ -23,7 +23,7 @@ class Game {
     __state = MainGame
     __state.init()
     
-    Toml.run("[54]\ntest = \"\"\"helll\\no\"\"\"")
+    Toml.run("[word.word]\ntest = '''hel\nll\\no'''\n")
   }
   static update() {
     __state.update()
