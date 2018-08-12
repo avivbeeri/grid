@@ -13,6 +13,8 @@ class Toml {
 class TomlToken {
   static LEFT_BRACKET { "L_BRACKET" }
   static RIGHT_BRACKET { "R_BRACKET" }
+  static LEFT_BRACE { "L_BRACE" }
+  static RIGHT_BRACE { "R_BRACE" }
   static EQUALS { "EQUALS" }
   static COMMA { "COMMA" }
   static DOT { "DOT" }
@@ -45,7 +47,16 @@ class Token {
   }
 
   toString {
-    if (_type == TomlToken.IDENTIFIER || _type == TomlToken.DATE || _type == TomlToken.TIME || _type == TomlToken.DATETIME || _type == TomlToken.BASIC_STRING || _type == TomlToken.INTEGER || _type == TomlToken.FLOAT) {
+    if (_type == TomlToken.IDENTIFIER || 
+      _type == TomlToken.DATE || 
+      _type == TomlToken.TIME || 
+      _type == TomlToken.DATETIME || 
+      _type == TomlToken.BASIC_STRING || 
+      _type == TomlToken.LITERAL_STRING || 
+      _type == TomlToken.MULTILINE_BASIC_STRING || 
+      _type == TomlToken.MULTILINE_LITERAL_STRING || 
+      _type == TomlToken.INTEGER || 
+      _type == TomlToken.FLOAT) {
       return "%(_type)(%(_lexeme))"
     }
     if (_literal != null) {
@@ -82,6 +93,10 @@ class TomlScanner {
       addToken(TomlToken.LEFT_BRACKET) 
     } else if (char == "]") {
       addToken(TomlToken.RIGHT_BRACKET) 
+    } else if (char == "{") {
+      addToken(TomlToken.LEFT_BRACE) 
+    } else if (char == "}") {
+      addToken(TomlToken.RIGHT_BRACE) 
     } else if (char == "=") {
       addToken(TomlToken.EQUALS) 
     } else if (char == ".") {
@@ -96,7 +111,7 @@ class TomlScanner {
       _line = _line + 1
       addToken(TomlToken.NEWLINE) 
     } else if (char == "#") {
-      while (peek() != "\n" && !isAtEnd()) {
+      while (peek() != "\n" && !(peek() == "\r" && match("\n")) && !isAtEnd()) {
         advance()
       }
     } else if (char == "\"" || char == "'") {
@@ -205,7 +220,13 @@ class TomlScanner {
     return isDigit(char) || isAlpha(char) || char == "_" || char == "-"
   }
 
+  isNewline(char, next) {
+    // TODO: Implement this
+  }
+
   number() {
+    // TODO: Split into Number and Date based on number of digits
+    // Enforce RFC3339 Date / Time formats
     while (isDigit(peek())) {
       advance()
     }
@@ -246,8 +267,8 @@ class TomlScanner {
         while (isDigit(peek())) {
           advance()
         }
-        if (_type == TomlToken.INTEGER) {
-          _type = TomlToken.TIME
+        if (type == TomlToken.INTEGER) {
+          type = TomlToken.TIME
         }
       }
     }
@@ -258,14 +279,30 @@ class TomlScanner {
         advance()
       }
       if (type == TomlToken.INTEGER) {
-        addToken(TomlToken.FLOAT, Num.fromString(StringUtils.substring(_source, _start, _current)))
-      } else {
-        addToken(type, StringUtils.substring(_source, _start, _current))
+        type = TomlToken.FLOAT
       }
-    } else if (type == TomlToken.INTEGER) {
-      addToken(TomlToken.INTEGER, Num.fromString(StringUtils.substring(_source, _start, _current)))
+    }
+
+    if (type == TomlToken.INTEGER || type == TomlToken.FLOAT) {
+      addToken(type, Num.fromString(StringUtils.substring(_source, _start, _current)))
     } else {
-      System.print(type)
+      if (type == TomlToken.DATETIME) {
+        if (peek() == "Z") {
+          advance()
+        } else if ((peek() == "+" || peek() == "-") && isDigit(peekNext())) {
+          advance()
+          while (isDigit(peek())) {
+            advance()
+          }
+          if (peek() == ":" && isDigit(peekNext())) {
+            // Local Time
+            advance()
+            while (isDigit(peek())) {
+              advance()
+            }
+          }
+        }
+      }
       addToken(type, StringUtils.substring(_source, _start, _current))
     }
   }
