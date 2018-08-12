@@ -19,6 +19,7 @@ class TomlToken {
   static COMMA { "COMMA" }
   static DOT { "DOT" }
   static EOF { "EOF" }
+  static PLUS { "PLUS" }
   static MINUS { "MINUS" }
   static NEWLINE { "NEWLINE" }
 
@@ -105,6 +106,8 @@ class TomlScanner {
       addToken(TomlToken.COMMA) 
     } else if (char == "-") {
       addToken(TomlToken.MINUS) 
+    } else if (char == "+") {
+      addToken(TomlToken.PLUS) 
     } else if (char == " " || char == "\t") {
       // Ignore whitespace and move on
     } else if (char == "\n" || char == "\r" && match("\n")) {
@@ -122,7 +125,7 @@ class TomlScanner {
       identifier()
     } else {
       // Handle keys, values including booleans
-      Fiber.abort("Lexing error")
+      Fiber.abort("Lexing error at %(char)")
     }
 
   }
