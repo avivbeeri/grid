@@ -211,19 +211,36 @@ class TomlParser {
 
   unary() {
     if (match([TomlToken.PLUS, TomlToken.MINUS])) {
-      return TomlUnary.new(previous(), literal())
+      return TomlUnary.new(previous(), number())
     }
     return literal()
+  }
+
+  number() {
+    var specialValues = {
+      "nan": true,
+      "inf": true
+    }
+    if (peek().type == TomlToken.IDENTIFIER && specialValues[peek().lexeme]) {
+      advance()
+      return TomlLiteral.new(previous().lexeme)
+    } else if (match([TomlToken.FLOAT, TomlToken.INTEGER])) {
+      return TomlLiteral.new(previous().literal)
+    }
   }
 
   literal() {
     if (match([TomlToken.FALSE])) { TomlLiteral.new(false) }
     if (match([TomlToken.TRUE])) { TomlLiteral.new(true) }
-    if (match([TomlToken.FLOAT, TomlToken.INTEGER, TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING, TomlToken.MULTILINE_LITERAL_STRING, TomlToken.MULTILINE_BASIC_STRING])) {
+    if (match([TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING, TomlToken.MULTILINE_LITERAL_STRING, TomlToken.MULTILINE_BASIC_STRING])) {
       return TomlLiteral.new(previous().literal)
     }
     // TODO: Handle date/time
 
+    var num = number()
+    if (num != null) {
+        return num
+    }
     if (match([ TomlToken.IDENTIFIER])) { TomlValue.new(previous().lexeme) }
   }
 
