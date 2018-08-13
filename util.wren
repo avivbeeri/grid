@@ -21,3 +21,26 @@ class Box {
       box1.y2 > box2.y1
   }
 }
+
+class Utils {
+  
+  /* 
+     Returns true if the given ClassObject is a descendant of
+     superClass but is not equal to superClass
+   */
+  static isClassDescendant(candidate, superClass) {
+    if (candidate is Class && superClass is Class) {
+      var type = candidate
+      while (type != Object) {
+        type = type.supertype
+        if (type == superClass) {
+          return true
+        }
+      }
+    } else {
+      Fiber.abort("Trying to check if %(candidate) is descendant of %(superClass)")
+    }
+    return false
+  }
+ 
+}

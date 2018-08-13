@@ -1,5 +1,7 @@
 import "./ecs/entity" for Entity
 import "./ecs/component" for Component
+import "./ecs/gamesystem" for GameSystem
+import "./util" for Utils
 
 class World {
   construct new() {
@@ -22,11 +24,19 @@ class World {
   }
 
   addSystem(systemType) {
-    _systems.add(systemType.init(this))
+    if (GameSystem.isSystemType(systemType)) {
+      _systems.add(systemType.init(this))
+    } else {
+      Fiber.abort("Trying to add non-system %(systemType) to the world")
+    }
   }
 
   addRenderSystem(systemType) {
-    _renderSystems.add(systemType.init(this))
+    if (GameSystem.isSystemType(systemType)) {
+      _renderSystems.add(systemType.init(this))
+    } else {
+      Fiber.abort("Trying to add non-system %(systemType) to the world")
+    }
   }
 
   addComponentManager(componentType) {
