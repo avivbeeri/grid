@@ -1,3 +1,5 @@
+import "./util" for Utils
+
 class Component {
   construct new(id) {
     _id = id
@@ -5,16 +7,12 @@ class Component {
 
   id { _id }
 
+  /* 
+     Returns true if the given ClassObject is a descendant of
+     Component but not Component 
+   */
   static isComponentType(classObject) {
-    if (classObject is Class) {
-      var type = classObject
-      while (type != Object) {
-        type = type.supertype
-        if (type == Component) {
-          return true
-        }
-      }
-    } 
-    return false
+    return Utils.isClassDescendant(classObject, Component)
   }
 }
+

@@ -1,5 +1,13 @@
+import "./ecs/component" for Component
+import "./util" for Utils
+
 class GameSystem {
   construct init(world, requires) { 
+    for (componentType in requires) {
+      if (!Component.isComponentType(componentType)) {
+        Fiber.abort("Requiring a non-component type %(componentType)") 
+      }
+    }
     _world = world 
     _requires = requires
   }
@@ -19,5 +27,9 @@ class GameSystem {
       } 
     }
     return allowedEntities
+  }
+
+  static isSystemType(classObject) {
+    return Utils.isClassDescendant(classObject, GameSystem)
   }
 }
