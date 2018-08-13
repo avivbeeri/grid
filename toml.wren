@@ -79,6 +79,7 @@ class TomlArray {
     _values = values
   }
   toString { _values.toString }
+  type { "ARRAY" }
 }
 
 class TomlTable {
@@ -123,6 +124,7 @@ class TomlUnary {
     _operator = operator
     _value = value
   }
+  toString { (_operator.type == TomlToken.PLUS ? "+" : "-") + _value.toString }
 }
 
 class TomlLiteral {
@@ -193,11 +195,19 @@ class TomlParser {
   value() {
     if (match([TomlToken.LEFT_BRACKET])) {
       // Start of an array
-      var list = [value()]
+      var list = []
+      var type = null
+      if (peek().type != TomlToken.RIGHT_BRACKET) {
+        list.add(value())
+        type = list[0].type
+      }
 
       while(match([TomlToken.COMMA])) {
       System.print("Next: %(peek())")
         list.add(value())
+        if (type == list[list.count-1].type) {
+          Fiber.abort("Arrays must be the same type")
+        }
       }
       System.print("End of values")
       consume(TomlToken.RIGHT_BRACKET, "Expect ']' after array")
