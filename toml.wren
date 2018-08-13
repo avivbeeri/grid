@@ -11,6 +11,15 @@ class Toml {
   }
 }
 
+class TomlType {
+  static STRING { "STRING" }
+  static FLOAT { "FLOAT" }
+  static INTEGER { "INTEGER" }
+  static BOOL { "BOOL" }
+  static ARRAY { "ARRAY" }
+  static DATETIME { "DATETIME" }
+  static INLINE_TABLE { "INLINE_TABLE" }
+}
 class TomlToken {
   static LEFT_BRACKET { "L_BRACKET" }
   static RIGHT_BRACKET { "R_BRACKET" }
@@ -79,7 +88,7 @@ class TomlArray {
     _values = values
   }
   toString { _values.toString }
-  type { "ARRAY" }
+  type { TomlType.ARRAY }
 }
 
 class TomlTable {
@@ -125,20 +134,26 @@ class TomlUnary {
     _value = value
   }
   toString { (_operator.type == TomlToken.PLUS ? "+" : "-") + _value.toString }
+  type { _value.type }
 }
 
 class TomlLiteral {
-  construct new(literal) {
+  construct new(literal, type) {
     _literal = literal
+    _type = type
   }
   literal { _literal }
+  type { _type }
   toString { _literal.toString }
 }
 
 class TomlValue {
-  construct new(value) {
+  construct new(value, type) {
     _value = value
+    _type = type
   }
+  type { _type }
+  toString { _value.toString }
 }
 
 class TomlParser {
@@ -203,13 +218,11 @@ class TomlParser {
       }
 
       while(match([TomlToken.COMMA])) {
-      System.print("Next: %(peek())")
         list.add(value())
-        if (type == list[list.count-1].type) {
+        if (type != list[list.count-1].type) {
           Fiber.abort("Arrays must be the same type")
         }
       }
-      System.print("End of values")
       consume(TomlToken.RIGHT_BRACKET, "Expect ']' after array")
       return TomlArray.new(list)
     } else if (match([TomlToken.LEFT_BRACE])) {
@@ -233,17 +246,17 @@ class TomlParser {
     }
     if (peek().type == TomlToken.IDENTIFIER && specialValues[peek().lexeme]) {
       advance()
-      return TomlLiteral.new(previous().lexeme)
+      return TomlLiteral.new(previous().lexeme, TomlType.FLOAT)
     } else if (match([TomlToken.FLOAT, TomlToken.INTEGER])) {
-      return TomlLiteral.new(previous().literal)
+      return TomlLiteral.new(previous().literal, previous().type)
     }
   }
 
   literal() {
-    if (match([TomlToken.FALSE])) { TomlLiteral.new(false) }
-    if (match([TomlToken.TRUE])) { TomlLiteral.new(true) }
+    if (match([TomlToken.FALSE])) { TomlLiteral.new(false, TomlType.BOOL) }
+    if (match([TomlToken.TRUE])) { TomlLiteral.new(true, TomlType.BOOL) }
     if (match([TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING, TomlToken.MULTILINE_LITERAL_STRING, TomlToken.MULTILINE_BASIC_STRING])) {
-      return TomlLiteral.new(previous().literal)
+      return TomlLiteral.new(previous().literal, TomlType.STRING)
     }
     // TODO: Handle date/time
 
@@ -251,7 +264,7 @@ class TomlParser {
     if (num != null) {
         return num
     }
-    if (match([ TomlToken.IDENTIFIER])) { TomlValue.new(previous().lexeme) }
+    if (match([ TomlToken.IDENTIFIER])) { TomlValue.new(previous().lexeme, null) }
   }
 
   consume(tokenType, message) {
