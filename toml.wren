@@ -215,6 +215,7 @@ class TomlParser {
       if (peek().type != TomlToken.RIGHT_BRACKET) {
         list.add(value())
         type = list[0].type
+        System.print(type)
       }
 
       while(match([TomlToken.COMMA])) {
@@ -253,8 +254,12 @@ class TomlParser {
   }
 
   literal() {
-    if (match([TomlToken.FALSE])) { TomlLiteral.new(false, TomlType.BOOL) }
-    if (match([TomlToken.TRUE])) { TomlLiteral.new(true, TomlType.BOOL) }
+    if (match([TomlToken.FALSE])) {
+      return TomlLiteral.new(false, TomlType.BOOL)
+    }
+    if (match([TomlToken.TRUE])) {
+      return TomlLiteral.new(true, TomlType.BOOL)
+    }
     if (match([TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING, TomlToken.MULTILINE_LITERAL_STRING, TomlToken.MULTILINE_BASIC_STRING])) {
       return TomlLiteral.new(previous().literal, TomlType.STRING)
     }

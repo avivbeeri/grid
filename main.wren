@@ -24,7 +24,7 @@ class Game {
     __state = MainGame
     __state.init()
 
-    var table = Toml.run("dot-stuff = 'Hello world'\nnewline     =     ['42', \"42\"]")
+    var table = Toml.run("dot-stuff = 'Hello world'\nnewline     =     [true, false]")
     for (pair in table.pairs) {
       System.print("%(pair.key): %(pair.value)")
     }
