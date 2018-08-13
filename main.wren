@@ -2,7 +2,6 @@ import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
-import "io" for FileSystem
 
 import "./toml" for Toml
 
@@ -24,8 +23,11 @@ class Game {
   static init() {
     __state = MainGame
     __state.init()
-    
-    Toml.run("[\"word.word\"]\ntest = +inf")
+
+    var table = Toml.run("dot-stuff = 'Hello world'\nnewline     =     [42, [42]]")
+    for (pair in table.pairs) {
+      System.print("%(pair.key): %(pair.value)")
+    }
   }
   static update() {
     __state.update()
@@ -40,12 +42,12 @@ class Game {
 }
 
 class PositionComponent is Component {
-  construct new(id) { 
-    super(id) 
+  construct new(id) {
+    super(id)
     _position = Point.new(0, 0)
   }
-  construct new(id, x, y) { 
-    super(id) 
+  construct new(id, x, y) {
+    super(id)
     _position = Point.new(x, y)
   }
 
@@ -56,27 +58,27 @@ class PositionComponent is Component {
 }
 
 class PlayerControlComponent is Component {
-  construct new(id) { 
-    super(id) 
+  construct new(id) {
+    super(id)
   }
 }
 class TileComponent is Component {
-  construct new(id) { 
-    super(id) 
+  construct new(id) {
+    super(id)
   }
 }
 
 class EnemyAIComponent is Component {
-  construct new(id) { 
-    super(id) 
+  construct new(id) {
+    super(id)
     _mode = "horizontal"
     _t = 0
     _dir = 1
   }
   mode { _mode }
   mode=(v) { _mode = v }
-  t { _t } 
-  t=(v) { _t = v } 
+  t { _t }
+  t=(v) { _t = v }
   dir { _dir }
   dir=(v) { _dir = v }
 }
@@ -179,18 +181,18 @@ class ScrollSystem is GameSystem {
 }
 
 class RectComponent is Component {
-  construct new(id) { 
-    super(id) 
+  construct new(id) {
+    super(id)
     setValues(Color.white, 5, 5)
   }
 
-  construct new(id, color) { 
-    super(id) 
+  construct new(id, color) {
+    super(id)
     setValues(color, 5, 5)
   }
 
-  construct new(id, color, w, h) { 
-    super(id) 
+  construct new(id, color, w, h) {
+    super(id)
     _color = color
     _width = w
     _height = h
