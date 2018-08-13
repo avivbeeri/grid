@@ -2,12 +2,13 @@ class Toml {
   static run(source) {
     var scanner = TomlScanner.new(source)
     var tokens = scanner.scanTokens()
+    var parser = TomlParser.new(tokens)
 
     for (token in tokens) {
       System.print(token)
     }
+    return parser.parseTokens()
   }
-  
 }
 
 class TomlToken {
@@ -46,6 +47,7 @@ class Token {
     _literal = literal
     _line = line
   }
+  type { _type }
 
   toString {
     if (_type == TomlToken.IDENTIFIER || 
@@ -65,7 +67,105 @@ class Token {
     }
     return _type
   }
+}
+
+class TomlArray {
+  construct new() {
+    _values = []
+    
+  }
+  construct new(values) {
+    _values = values
+  }
+}
+
+class TomlTable {
+  construct new() {
+    _pairs = []
+  }
+  construct new(pairs) {
+    _pairs = pairs
+  } 
+  add(pair) { _pairs.add(pair) }
+}
+
+class TomlKeyValuePair {
+  construct new(key, value) {
+    _key = key
+    _value = value
+  }
+}
+
+class TomlKey {
+  construct new(path) {
+    _path = path
+  }
+}
+
+class TomlValue {
+  construct new() {}
+}
+
+class TomlParser {
+  construct new(tokens) {
+    _tokens = tokens
+    _current = 0
+  }
+
+  parseTokens() {
+    
+  }
+
+  document() {
+    var document = TomlTable.new()
+    while (!isAtEnd()) {
+      if (match([TomlToken.IDENTIFIER, TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING])) {
+        document.add(keyValuePair())
+      } else if (match([TomlToken.L_BRACKET])) {
+        if (peek().type == TomlToken.L_BRACKET) {
+          arrayTable()
+        } else {
+          table()
+        }
+      }
+    }
+  }
+
+  match(tokenTypes) {
+    for (type in tokenTypes) {
+      if (check(type)) {
+        advance()
+        return true
+      }
+    }
+    return false
+  }
+
+  check(tokenType) {
+    if (isAtEnd()) {
+      return false
+    }
+    return peek().type == tokenType
+  }
+
+  advance() {
+    if (!isAtEnd()) {
+      _current = _current + 1
+    }
+    return previous()
+  }
+
+  isAtEnd() {
+    return peek().type == TomlToken.EOF
+  }
   
+  peek() {
+    return tokens[_current]
+  }
+
+  previous() {
+    return tokens[_current - 1]
+  }
 }
 
 class TomlScanner {
