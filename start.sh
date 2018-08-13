@@ -1,2 +1,5 @@
 #/bin/bash
-engine/dome main.wren
+cd engine
+make
+cd ..
+./engine/dome main.wren
