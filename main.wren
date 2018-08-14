@@ -3,7 +3,7 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 
-import "./toml" for Toml
+import "./toml/toml" for Toml
 
 import "./gameover" for GameOverState
 import "./util" for Box
