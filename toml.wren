@@ -456,20 +456,10 @@ class TomlScanner {
   string(quoteType) {
     // TODO: Support non-basic and multi-line strings
     var type = quoteType == "\"" ? TomlToken.BASIC_STRING : TomlToken.LITERAL_STRING
+    var stringType = type == TomlToken.BASIC_STRING ? "basic" : "literal"
     var size = 1
     var trim = 0
 
-    var escapes = {
-      "b": true,
-      "t": true,
-      "n": true,
-      "f": true,
-      "r": true,
-      "\"": true,
-      "\\": true,
-      "u": true,
-      "U": true
-    }
     if (peek() == quoteType && peekNext() == quoteType) {
       type = quoteType == "\"" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
       size = 3
@@ -485,8 +475,12 @@ class TomlScanner {
       if (peek() == "\n" && (type == TomlToken.BASIC_STRING || type == TomlToken.LITERAL_STRING)) {
         Fiber.abort("Trying to split single line string across multiple lines")
       }
-      if (size == 1 && peek() == "\\" && escapes[peekNext()] == null) {
-        Fiber.abort("Invalid escape sequence in string")
+      if (peek() == "\\" && stringType != "literal") {
+        if (StringUtils.EscapeChars.containsKey(peekNext())) {
+          advance()
+        } else if (size == 1) {
+          Fiber.abort("Invalid escape sequence in string")
+        }
       }
       advance()
     }
@@ -502,21 +496,11 @@ class TomlScanner {
     }
     var value = StringUtils.substring(_source, _start + size + trim, _current - size)
 
-    var outputValue = ""
-    var i = 0
-    while (i < value.count) {
-      if (value[i] == "\\") {
-        while (i < value.count && value[i] != "\n") {
-          i = i + 1
-        }
-      } else {
-        outputValue = outputValue + value[i]
-      }
-      i = i + 1
-    }
+    var outputValue = stringType == "basic" ? StringUtils.unescape(value) : value
+    // Handle escaped characters
 
     // TODO: Unescape values
-    addToken(type, value)
+    addToken(type, outputValue)
   }
 
   isDigit(char) {
@@ -643,7 +627,7 @@ class TomlScanner {
 
   addToken(type, literal) {
     var text = StringUtils.substring(_source, _start, _current)
-    _tokens.add(Token.new(type, text, literal, _line))
+    System.print(_tokens.add(Token.new(type, text, literal, _line)))
   }
 
   isAtEnd() {
@@ -671,6 +655,49 @@ class StringUtils {
       output = output + str[i]
     }
     return output
+  }
+
+  static unescape(value) {
+
+    var EscapeChars = StringUtils.EscapeChars
+    var outputValue = ""
+    var i = 0
+    while (i < value.count) {
+      if (value[i] == "\\") {
+         i = i + 1
+         var escapeChar = value[i]
+         if (EscapeChars[escapeChar] is Num) {
+           i = i + 1
+           var code = ""
+           for (j in 0...EscapeChars[escapeChar]) {
+             code = code + value[i+j]
+           }
+           System.print("Code: %(code)")
+           outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
+           i = i + EscapeChars[escapeChar] - 1
+         } else {
+           outputValue = outputValue + EscapeChars[value[i]]
+         }
+      } else {
+        outputValue = outputValue + value[i]
+      }
+      i = i + 1
+    }
+    return outputValue
+  }
+
+  static EscapeChars {
+    return {
+      "b": "\b",
+      "t": "\t",
+      "n": "\n",
+      "f": "\f",
+      "r": "\r",
+      "\"": "\"",
+      "\\": "\\",
+      "u": 4,
+      "U": 8
+    }
   }
 
 }

@@ -24,7 +24,7 @@ class Game {
     __state = MainGame
     __state.init()
 
-    var document = Toml.run("t = { work = 0o42, play = \"stuff\" }\n[[config]]\ndot-stuff = 'Hello world'\nnewline     =     [true, false]")
+    var document = Toml.run("t = { work = 0x42, play = \"\"\"Im a string. \\U00660000You ca\nn quote me\\\" \"\"\" }\n[[config]]\ndot-stuff = 'Hello world'\nnewline     =     [true, false]")
     for (table in document.tables) {
       System.print("[%(table.key)]")
       for (pair in table.pairs) {
