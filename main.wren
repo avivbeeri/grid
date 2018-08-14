@@ -24,10 +24,20 @@ class Game {
     __state = MainGame
     __state.init()
 
-    var table = Toml.run("dot-stuff = 'Hello world'\nnewline     =     [true, false]")
-    for (pair in table.pairs) {
-      System.print("%(pair.key): %(pair.value)")
+    var document = Toml.run("t = { work = 42 }\n[[config]]\ndot-stuff = 'Hello world'\nnewline     =     [true, false]")
+    for (table in document.tables) {
+      System.print("[%(table.key)]")
+      for (pair in table.pairs) {
+        System.print("%(pair.key): %(pair.value)")
+      }
     }
+    for (table in document.arrayTables) {
+      System.print("[[%(table.key)]]")
+      for (pair in table.pairs) {
+        System.print("%(pair.key): %(pair.value)")
+      }
+    }
+    System.print("-- END --")
   }
   static update() {
     __state.update()

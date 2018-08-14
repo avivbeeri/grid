@@ -4,9 +4,11 @@ class Toml {
     var tokens = scanner.scanTokens()
     var parser = TomlParser.new(tokens)
 
+    /*
     for (token in tokens) {
       System.print(token)
     }
+    */
     return parser.parseTokens()
   }
 }
@@ -20,6 +22,7 @@ class TomlType {
   static DATETIME { "DATETIME" }
   static INLINE_TABLE { "INLINE_TABLE" }
 }
+
 class TomlToken {
   static LEFT_BRACKET { "L_BRACKET" }
   static RIGHT_BRACKET { "R_BRACKET" }
@@ -91,15 +94,59 @@ class TomlArray {
   type { TomlType.ARRAY }
 }
 
+
 class TomlTable {
   construct new() {
     _pairs = []
+    _key = null
   }
-  construct new(pairs) {
-    _pairs = pairs
+  construct new(key) {
+    _key = key
+    _pairs = []
   }
   add(pair) { _pairs.add(pair) }
   pairs { _pairs }
+  key { _key }
+  toString {
+    var out = "{\n"
+    if (_key != null) {
+      out = out + "[%(table.key)]\n"
+    }
+    for (pair in _pairs) {
+      out = out + "%(pair.key): %(pair.value)\n"
+    }
+    return out + "}"
+  }
+}
+
+class TomlArrayTable is TomlTable {
+  construct new(key) {
+    super(key) 
+  } 
+}
+
+class TomlDocument is TomlTable {
+  construct new() {
+    super() 
+    _tables = []
+    _arrayTables = []
+  } 
+
+  addTable(key) {
+    return _tables.add(TomlTable.new(key))
+  }
+
+  addArrayTable(key) {
+    return _arrayTables.add(TomlArrayTable.new(key))
+  }
+
+  tables { 
+    var tables = _tables[0..-1]
+    tables.add(this) 
+    return tables
+  }
+
+  arrayTables { _arrayTables }
 }
 
 class TomlKeyValuePair {
@@ -167,20 +214,21 @@ class TomlParser {
   }
 
   document() {
-    var document = TomlTable.new()
+    var document = TomlDocument.new()
     var currentTable = document
     while (!isAtEnd()) {
       if (match([TomlToken.LEFT_BRACKET])) {
-        /*
-        if (peek().type == TomlToken.L_BRACKET) {
-          arrayTable()
+        if (match([TomlToken.LEFT_BRACKET])) {
+          System.print("ARRAY")
+          currentTable = document.addArrayTable(TomlKey.new(keyPath()))
+          consume(TomlToken.RIGHT_BRACKET, "Expected ']' after table declaration")
         } else {
-          table()
+          currentTable = document.addTable(TomlKey.new(keyPath()))
         }
-        */
-        Fiber.abort("Parser: Not implemented yet")
+        consume(TomlToken.RIGHT_BRACKET, "Expected ']' after table declaration")
+      } else {
+        currentTable.add(keyValuePair())
       }
-      currentTable.add(keyValuePair())
       while(match([ TomlToken.NEWLINE ])) {}
     }
     return document
@@ -198,13 +246,18 @@ class TomlParser {
     }
   }
 
-  keyValuePair() {
+  keyPath() {
     var path = [ keyName() ]
     while (!check(TomlToken.EQUALS) && match([TomlToken.DOT])) {
       path.add(keyName())
     }
+    return path
+  }
+
+  keyValuePair() {
+    var key = keyPath()
     consume(TomlToken.EQUALS, "Expected EQUALS after a key")
-    return TomlKeyValuePair.new(TomlKey.new(path), value())
+    return TomlKeyValuePair.new(TomlKey.new(key), value())
   }
 
   value() {
@@ -215,7 +268,6 @@ class TomlParser {
       if (peek().type != TomlToken.RIGHT_BRACKET) {
         list.add(value())
         type = list[0].type
-        System.print(type)
       }
 
       while(match([TomlToken.COMMA])) {
@@ -227,7 +279,13 @@ class TomlParser {
       consume(TomlToken.RIGHT_BRACKET, "Expect ']' after array")
       return TomlArray.new(list)
     } else if (match([TomlToken.LEFT_BRACE])) {
-      Fiber.abort("Inline tables are not yet supported")
+      var table = TomlTable.new()
+      while (true) {
+        table.add(keyValuePair())
+        if (!match([TomlToken.COMMA])) break
+      }
+      consume(TomlToken.RIGHT_BRACE, "Expect '}' after inline table")
+      return table
     } else {
       return unary()
     }
