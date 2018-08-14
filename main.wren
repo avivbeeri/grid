@@ -94,7 +94,7 @@ class TileSystem is GameSystem {
       _t = 0
       for (entity in entities) {
         var rect = entity.getComponent(RectComponent)
-        rect.setValues(rect.color == Color.white ? Color.black : Color.white, 8, 8)
+        // rect.setValues(rect.color == Color.white ? Color.black : Color.white, 8, 8)
       }
     }
   }
