@@ -18,7 +18,6 @@ class TomlParser {
     while (!isAtEnd()) {
       if (match([TomlToken.LEFT_BRACKET])) {
         if (match([TomlToken.LEFT_BRACKET])) {
-          System.print("ARRAY")
           currentTable = document.addArrayTable(TomlKey.new(keyPath()))
           consume(TomlToken.RIGHT_BRACKET, "Expected ']' after table declaration")
         } else {

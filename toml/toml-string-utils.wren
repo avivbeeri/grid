@@ -22,7 +22,6 @@ class StringUtils {
            for (j in 0...EscapeChars[escapeChar]) {
              code = code + value[i+j]
            }
-           System.print("Code: %(code)")
            outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
            i = i + EscapeChars[escapeChar] - 1
          } else {

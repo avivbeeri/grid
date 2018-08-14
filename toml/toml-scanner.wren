@@ -263,7 +263,7 @@ class TomlScanner {
 
   addToken(type, literal) {
     var text = StringUtils.substring(_source, _start, _current)
-    System.print(_tokens.add(Token.new(type, text, literal, _line)))
+    _tokens.add(Token.new(type, text, literal, _line))
   }
 
   isAtEnd() {

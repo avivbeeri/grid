@@ -4,6 +4,8 @@ import "audio" for AudioEngine
 import "random" for Random
 
 import "./toml/toml" for Toml
+import "./toml/toml-map-builder" for TomlMapBuilder
+
 
 import "./gameover" for GameOverState
 import "./util" for Box
@@ -25,18 +27,7 @@ class Game {
     __state.init()
 
     var document = Toml.run("t = { work = -2E-32, play = \"\"\"Im a string. \\U00660000You ca\nn quote me\\\" \"\"\" }\n[[config]]\ndot-stuff = 'Hello world'\nnewline     =     [true, false]")
-    for (table in document.tables) {
-      System.print("[%(table.key)]")
-      for (pair in table.pairs) {
-        System.print("%(pair.key): %(pair.value)")
-      }
-    }
-    for (table in document.arrayTables) {
-      System.print("[[%(table.key)]]")
-      for (pair in table.pairs) {
-        System.print("%(pair.key): %(pair.value)")
-      }
-    }
+    TomlMapBuilder.new(document).build()
     System.print("-- END --")
   }
   static update() {

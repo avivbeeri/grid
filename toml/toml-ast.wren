@@ -1,6 +1,7 @@
 import "./toml/toml-token" for Token, TomlToken
 import "./toml/toml-types" for TomlType
 
+
 class TomlArray {
   construct new() {
     _values = []
@@ -12,8 +13,13 @@ class TomlArray {
   type { TomlType.ARRAY }
 }
 
+class TomlNode {
+  accept(visitor) {
+    return visitor.visit(this)
+  }
+}
 
-class TomlTable {
+class TomlTable is TomlNode {
   construct new() {
     _pairs = []
     _key = null
@@ -43,6 +49,61 @@ class TomlArrayTable is TomlTable {
   }
 }
 
+class TomlKeyValuePair is TomlNode {
+  construct new(key, value) {
+    _key = key
+    _value = value
+  }
+  key { _key }
+  value { _value }
+}
+
+class TomlKey is TomlNode {
+  construct new(path) {
+    _path = path
+  }
+
+  toString {
+    var out = ""
+    for (i in 0..._path.count) {
+      out = out + _path[i].toString
+      if (i < _path.count - 1) {
+        out = out + "."
+      }
+    }
+   return out
+  }
+}
+
+class TomlUnary is TomlNode {
+  construct new(operator, value) {
+    _operator = operator
+    _value = value
+  }
+  toString { (_operator.type == TomlToken.PLUS ? "+" : "-") + _value.toString }
+  type { _value.type }
+}
+
+class TomlLiteral is TomlNode {
+  construct new(literal, type) {
+    _literal = literal
+    _type = type
+  }
+  literal { _literal }
+  type { _type }
+  toString { _literal.toString }
+}
+
+class TomlValue is TomlNode {
+  construct new(value, type) {
+    _value = value
+    _type = type
+  }
+  type { _type }
+  value { _value }
+  toString { _value.toString }
+}
+
 class TomlDocument is TomlTable {
   construct new() {
     super()
@@ -65,58 +126,4 @@ class TomlDocument is TomlTable {
   }
 
   arrayTables { _arrayTables }
-}
-
-class TomlKeyValuePair {
-  construct new(key, value) {
-    _key = key
-    _value = value
-  }
-  key { _key }
-  value { _value }
-}
-
-class TomlKey {
-  construct new(path) {
-    _path = path
-  }
-
-  toString {
-    var out = ""
-    for (i in 0..._path.count) {
-      out = out + _path[i].toString
-      if (i < _path.count - 1) {
-        out = out + "."
-      }
-    }
-   return out
-  }
-}
-
-class TomlUnary {
-  construct new(operator, value) {
-    _operator = operator
-    _value = value
-  }
-  toString { (_operator.type == TomlToken.PLUS ? "+" : "-") + _value.toString }
-  type { _value.type }
-}
-
-class TomlLiteral {
-  construct new(literal, type) {
-    _literal = literal
-    _type = type
-  }
-  literal { _literal }
-  type { _type }
-  toString { _literal.toString }
-}
-
-class TomlValue {
-  construct new(value, type) {
-    _value = value
-    _type = type
-  }
-  type { _type }
-  toString { _value.toString }
 }
