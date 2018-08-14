@@ -121,16 +121,16 @@ class TomlTable {
 
 class TomlArrayTable is TomlTable {
   construct new(key) {
-    super(key) 
-  } 
+    super(key)
+  }
 }
 
 class TomlDocument is TomlTable {
   construct new() {
-    super() 
+    super()
     _tables = []
     _arrayTables = []
-  } 
+  }
 
   addTable(key) {
     return _tables.add(TomlTable.new(key))
@@ -140,9 +140,9 @@ class TomlDocument is TomlTable {
     return _arrayTables.add(TomlArrayTable.new(key))
   }
 
-  tables { 
+  tables {
     var tables = _tables[0..-1]
-    tables.add(this) 
+    tables.add(this)
     return tables
   }
 
@@ -427,7 +427,7 @@ class TomlScanner {
     } else if (char == "\"" || char == "'") {
       string(char)
     } else if (isDigit(char)) {
-      number()
+      number(char)
     } else if (isAlpha(char)) {
       identifier()
     } else {
@@ -530,13 +530,10 @@ class TomlScanner {
     return isDigit(char) || isAlpha(char) || char == "_" || char == "-"
   }
 
-  isNewline(char, next) {
-    // TODO: Implement this
-  }
-
-  number() {
+  number(char) {
     // TODO: Split into Number and Date based on number of digits
     // Enforce RFC3339 Date / Time formats
+    if (char == "0" && (peek() == "x" || peek() == "b" || peek() == "o")) advance()
     while (isDigit(peek())) {
       advance()
     }
@@ -594,7 +591,11 @@ class TomlScanner {
     }
 
     if (type == TomlToken.INTEGER || type == TomlToken.FLOAT) {
-      addToken(type, Num.fromString(StringUtils.substring(_source, _start, _current)))
+      var numString = StringUtils.substring(_source, _start, _current)
+      if (numString[1] == "o" || numString[1] == "b") {
+        Fiber.abort("Binary and octal numbers are not supported")
+      }
+      addToken(type, Num.fromString(numString))
     } else {
       if (type == TomlToken.DATETIME) {
         if (peek() == "Z") {
