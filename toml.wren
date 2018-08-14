@@ -575,6 +575,16 @@ class TomlScanner {
     }
 
     if (type == TomlToken.INTEGER || type == TomlToken.FLOAT) {
+      if (match("e") || match("E")) {
+        if (match("-") || match("+")) {
+          while (isDigit(peek())) {
+            advance()
+          }
+          type = TomlToken.FLOAT
+        } else {
+          Fiber.abort("Invalid float exponent")
+        }
+      }
       var numString = StringUtils.substring(_source, _start, _current)
       if (numString[1] == "o" || numString[1] == "b") {
         Fiber.abort("Binary and octal numbers are not supported")
