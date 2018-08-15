@@ -9,7 +9,6 @@ class TomlMapBuilder {
     if (document is TomlDocument) {
       _document = document
       _map = {}
-      _currentPath = []
     } else {
       Fiber.abort("%(document) is not a TOML Document")
     }
@@ -48,11 +47,15 @@ class TomlMapBuilder {
   }
 
   traverseMap(keyPath) {
-    traverseMap(keyPath, null)
+    return traverseMap(keyPath, null)
   }
 
   traverseMap(keyPath, replacementStrategy) {
     var current = _map
+    if (keyPath.count == 0) {
+      System.print(current)
+      return current
+    }
 
     for (key in keyPath) {
       if (!current.containsKey(key)) {
@@ -74,12 +77,17 @@ class TomlMapBuilder {
 
   visitLiteral(node) {
     // TODO: Handle dates?
-    return node.literal
+    if (node.type == TomlType.FLOAT && node.literal == "inf") {
+      return (1/0)
+    } else if (node.type == TomlType.FLOAT && node.literal == "nan") {
+      return (0/0)
+    } else {
+      return node.literal
+    }
   }
 
   visitValue(node) {
-    System.print("Value: %(node.value)")
-    // Do we need to interpret NaN/Infinity here?
+    System.print("IDENTIFIER: %(node.value.type)")
     return node.value
   }
 
@@ -94,7 +102,9 @@ class TomlMapBuilder {
     return node.path
   }
 
-  visitArray(pair) {}
+  visitArray(node) {
+  }
+
   visitArrayTable(pair) {}
 
   visitKeyPair(pair) {
@@ -104,14 +114,17 @@ class TomlMapBuilder {
     var finalMap = traverseMap(pairKey[0...-1])
     finalMap[pairKey[-1]] = pairValue
     */
-
-    System.print("%(pair.key): %(pair.value)")
+    // System.print(pairValue)
+    return pairValue
   }
 
   visitTable(table) {
+    var currentTable = null
+    var tablePath = []
     if (table.key != null) {
-      var keyPath = evaluate(table.key)
-      _currentPath = keyPath
+      tablePath = evaluate(table.key)
+    } else {
+      currentTable = _map
     }
     // System.print(table)
 
@@ -119,14 +132,22 @@ class TomlMapBuilder {
     //var map = traverseMap(key)
 
     for (pair in table.pairs) {
-      evaluate(pair)
+      var mapTablePath = tablePath[0..-1]
+      var keyPath = evaluate(pair.key)
+      if (keyPath.count > 1) {
+        for (key in keyPath[0...-1]) {
+          mapTablePath.add(key)
+        }
+      }
+      var finalMap = traverseMap(mapTablePath)
+      System.print(finalMap)
+      finalMap[keyPath[-1]] = evaluate(pair)
     }
   }
 
   visitDocument(document) {
     for (table in document.tables) {
-      System.print(table)
-      evaluate(table)
+      var finalisedTable = evaluate(table)
     }
 
     return _map
