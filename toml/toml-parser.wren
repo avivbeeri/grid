@@ -14,7 +14,7 @@ class TomlParser {
 
   document() {
     var document = TomlDocument.new()
-    var currentTable = document
+    var currentTable = document[0]
     while (!isAtEnd()) {
       if (match([TomlToken.LEFT_BRACKET])) {
         if (match([TomlToken.LEFT_BRACKET])) {

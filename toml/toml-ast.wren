@@ -1,8 +1,13 @@
 import "./toml/toml-token" for Token, TomlToken
 import "./toml/toml-types" for TomlType
 
+class TomlNode {
+  accept(visitor) {
+    return visitor.visit(this)
+  }
+}
 
-class TomlArray {
+class TomlArray is TomlNode {
   construct new() {
     _values = []
   }
@@ -11,12 +16,6 @@ class TomlArray {
   }
   toString { _values.toString }
   type { TomlType.ARRAY }
-}
-
-class TomlNode {
-  accept(visitor) {
-    return visitor.visit(this)
-  }
 }
 
 class TomlTable is TomlNode {
@@ -63,6 +62,8 @@ class TomlKey is TomlNode {
     _path = path
   }
 
+  path { _path }
+
   toString {
     var out = ""
     for (i in 0..._path.count) {
@@ -82,6 +83,8 @@ class TomlUnary is TomlNode {
   }
   toString { (_operator.type == TomlToken.PLUS ? "+" : "-") + _value.toString }
   type { _value.type }
+  value { _value }
+  operator { _operator }
 }
 
 class TomlLiteral is TomlNode {
@@ -104,26 +107,20 @@ class TomlValue is TomlNode {
   toString { _value.toString }
 }
 
-class TomlDocument is TomlTable {
+class TomlDocument is TomlNode {
   construct new() {
-    super()
-    _tables = []
-    _arrayTables = []
+    _tables = [TomlTable.new()]
   }
+
+  [index] { _tables[index] }
+  tables { _tables }
 
   addTable(key) {
     return _tables.add(TomlTable.new(key))
   }
 
   addArrayTable(key) {
-    return _arrayTables.add(TomlArrayTable.new(key))
+    return _tables.add(TomlArrayTable.new(key))
   }
 
-  tables {
-    var tables = _tables[0..-1]
-    tables.add(this)
-    return tables
-  }
-
-  arrayTables { _arrayTables }
 }
