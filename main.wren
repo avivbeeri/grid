@@ -27,7 +27,7 @@ class Game {
     __state.init()
 
 //    var document = Toml.run("t = { work = -2E-32, play = \"\"\"Im a string. \\U00660000You ca\nn quote me\\\" \"\"\" }\n[[config]]\ndot-stuff = 'Hello world'\nnewline     =     [true, false]")
-    var document = Toml.run("t = nan")
+    var document = Toml.run("[[test]]\nx = {y = [{q=32}, {u=42}, {n=53}]}\n[[test]]\nt = 'hello world'")
     System.print(TomlMapBuilder.new(document).build())
     System.print("-- END --")
   }

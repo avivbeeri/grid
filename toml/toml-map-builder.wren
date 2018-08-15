@@ -1,8 +1,59 @@
 import "./toml/toml-ast" for
   TomlNode, TomlArray, TomlTable, TomlArrayTable, TomlDocument, TomlKey,
-  TomlUnary, TomlLiteral,TomlValue, TomlKeyValuePair
+  TomlUnary, TomlLiteral,TomlValue, TomlKeyValuePair, TomlInlineTable
 import "./toml/toml-types" for TomlType
 import "./toml/toml-token" for TomlToken
+
+class Scope {
+  construct new() {
+    _map = {}
+  }
+
+  [keyPath] {
+    if (keyPath is List) {
+      return retrieve(keyPath)
+    }
+    Fiber.abort("%(keyPath): Expected path to be a List")
+  }
+  [keyPath]=(value) {
+    if (keyPath is List) {
+      return set(keyPath, value)
+    }
+    Fiber.abort("%(keyPath): Expected path to be a List")
+  }
+
+  map { _map }
+
+  retrieve(keyPath) {
+    var current = _map
+    if (keyPath.count == 0) {
+      return current
+    }
+
+    for (key in keyPath) {
+      if (!current.containsKey(key)) {
+        return null
+      }
+      current = current[key]
+    }
+    return current
+  }
+
+  set(keyPath, value) {
+    var current = _map
+    if (keyPath.count == 0) {
+      return current
+    }
+
+    for (key in keyPath) {
+      if (!current.containsKey(key)) {
+        current[key] = {}
+      }
+      current = current[key]
+    }
+    return current
+  }
+}
 
 class TomlMapBuilder {
   construct new(document) {
@@ -33,27 +84,32 @@ class TomlMapBuilder {
       return visitUnary(tomlNode)
     } else if (tomlNode is TomlKey) {
       return visitKey(tomlNode)
-    } else if (tomlNode is TomlTable) {
-      return visitTable(tomlNode)
+    } else if (tomlNode is TomlInlineTable) {
+      return visitInlineTable(tomlNode)
     } else if (tomlNode is TomlArrayTable) {
       return visitArrayTable(tomlNode)
     } else if (tomlNode is TomlArray) {
       return visitArray(tomlNode)
     } else if (tomlNode is TomlKeyValuePair) {
       return visitKeyPair(tomlNode)
+    } else if (tomlNode is TomlTable) {
+      return visitTable(tomlNode)
     }
 
     return null
   }
 
   traverseMap(keyPath) {
-    return traverseMap(keyPath, null)
+    return traverseMap(_map, keyPath, null)
   }
 
-  traverseMap(keyPath, replacementStrategy) {
-    var current = _map
+  traverseMap(map, keyPath) {
+    return traverseMap(map, keyPath, null)
+  }
+
+  traverseMap(map, keyPath, replacementStrategy) {
+    var current = map
     if (keyPath.count == 0) {
-      System.print(current)
       return current
     }
 
@@ -103,19 +159,28 @@ class TomlMapBuilder {
   }
 
   visitArray(node) {
+    var array = []
+    for (value in node.values) {
+      array.add(evaluate(value))
+    }
+    return array
   }
 
-  visitArrayTable(pair) {}
 
   visitKeyPair(pair) {
     var pairKey = evaluate(pair.key)
     var pairValue = evaluate(pair.value)
-    /*
-    var finalMap = traverseMap(pairKey[0...-1])
-    finalMap[pairKey[-1]] = pairValue
-    */
-    // System.print(pairValue)
     return pairValue
+  }
+
+  visitInlineTable(table) {
+    var map = {}
+    for (pair in table.pairs) {
+      var keyPath = evaluate(pair.key)
+      var finalMap = traverseMap(map, keyPath[0...-1])
+      finalMap[keyPath[-1]] = evaluate(pair)
+    }
+    return map
   }
 
   visitTable(table) {
@@ -123,10 +188,10 @@ class TomlMapBuilder {
     var tablePath = []
     if (table.key != null) {
       tablePath = evaluate(table.key)
+      currentTable = traverseMap(tablePath)
     } else {
       currentTable = _map
     }
-    // System.print(table)
 
     // TODO: Disallow redeclaration of tables
     //var map = traverseMap(key)
@@ -140,9 +205,27 @@ class TomlMapBuilder {
         }
       }
       var finalMap = traverseMap(mapTablePath)
-      System.print(finalMap)
       finalMap[keyPath[-1]] = evaluate(pair)
     }
+  }
+
+  visitArrayTable(table) {
+    var tableArrayPath = evaluate(table.key)
+    var container = traverseMap(tableArrayPath[0...-1])
+    var tableKey = tableArrayPath[-1]
+    if (!container.containsKey(tableKey)) {
+      container[tableKey] = []
+    }
+
+    // TODO: Stricter type checking
+    var tableArray = container[tableKey]
+    if (tableArray is List) {
+      tableArray.add(visitInlineTable(table))
+    } else {
+      Fiber.abort("Can't redefine a key for array of tables")
+    }
+
+
   }
 
   visitDocument(document) {

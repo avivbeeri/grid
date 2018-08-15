@@ -1,6 +1,6 @@
 import "./toml/toml-token" for Token, TomlToken
 import "./toml/toml-types" for TomlType
-import "./toml/toml-ast" for TomlArray, TomlTable, TomlArrayTable, TomlDocument, TomlKey, TomlUnary, TomlLiteral,TomlValue, TomlKeyValuePair
+import "./toml/toml-ast" for TomlArray, TomlTable, TomlArrayTable, TomlDocument, TomlKey, TomlUnary, TomlLiteral,TomlValue, TomlKeyValuePair, TomlInlineTable
 
 class TomlParser {
   construct new(tokens) {
@@ -53,9 +53,9 @@ class TomlParser {
   }
 
   keyValuePair() {
-    var key = keyPath()
+    var key = TomlKey.new(keyPath())
     consume(TomlToken.EQUALS, "Expected EQUALS after a key")
-    return TomlKeyValuePair.new(TomlKey.new(key), value())
+    return TomlKeyValuePair.new(key, value())
   }
 
   value() {
@@ -77,7 +77,7 @@ class TomlParser {
       consume(TomlToken.RIGHT_BRACKET, "Expect ']' after array")
       return TomlArray.new(list)
     } else if (match([TomlToken.LEFT_BRACE])) {
-      var table = TomlTable.new()
+      var table = TomlInlineTable.new()
       while (true) {
         table.add(keyValuePair())
         if (!match([TomlToken.COMMA])) break

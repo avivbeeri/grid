@@ -16,6 +16,7 @@ class TomlArray is TomlNode {
   }
   toString { _values.toString }
   type { TomlType.ARRAY }
+  values { _values }
 }
 
 class TomlTable is TomlNode {
@@ -39,6 +40,15 @@ class TomlTable is TomlNode {
       out = out + "%(pair.key): %(pair.value)\n"
     }
     return out + "}"
+  }
+}
+
+class TomlInlineTable is TomlTable {
+  construct new() {
+    super()
+  }
+  construct new(key) {
+    super(key)
   }
 }
 
