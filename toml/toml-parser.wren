@@ -16,6 +16,7 @@ class TomlParser {
     var document = TomlDocument.new()
     var currentTable = document[0]
     while (!isAtEnd()) {
+      while(match([ TomlToken.NEWLINE ])) {}
       if (match([TomlToken.LEFT_BRACKET])) {
         if (match([TomlToken.LEFT_BRACKET])) {
           currentTable = document.addArrayTable(TomlKey.new(keyPath()))
@@ -27,7 +28,6 @@ class TomlParser {
       } else {
         currentTable.add(keyValuePair())
       }
-      while(match([ TomlToken.NEWLINE ])) {}
     }
     return document
   }

@@ -4,7 +4,7 @@ import "./toml/toml-ast" for
 import "./toml/toml-types" for TomlType
 import "./toml/toml-token" for TomlToken
 
-class ReplacementStrategy {
+class CreationStrategy {
   static ALLOW { "allow" }
   static DENY { "deny" }
 }
@@ -55,38 +55,33 @@ class TomlMapBuilder {
   }
 
   traverseMap(keyPath) {
-    return traverseMap(_map, keyPath, ReplacementStrategy.ALLOW)
+    return traverseMap(_map, keyPath, CreationStrategy.ALLOW)
   }
 
   traverseMap(map, keyPath) {
-    return traverseMap(map, keyPath, ReplacementStrategy.ALLOW)
+    return traverseMap(map, keyPath, CreationStrategy.ALLOW)
   }
 
-  traverseMap(map, keyPath, replacementStrategy) {
+  traverseMap(map, keyPath, creationStrategy) {
     var current = map
     if (keyPath.count == 0) {
       return current
     }
 
-    var level = 0
-    var totalLevels = keyPath.count
     for (key in keyPath) {
-      if (level < totalLevels && current is List) {
-        current = current[-1] || {}
-      }
       if (!current.containsKey(key)) {
-        if (replacementStrategy == ReplacementStrategy.ALLOW) {
+        if (creationStrategy == CreationStrategy.ALLOW) {
           // Create if missing
           current[key] = {}
         }
       }
       // Now that we have created it if we wanted,
       // try to retrieve.
-      if (replacementStrategy == ReplacementStrategy.ALLOW) {
-        // Append
-        current = current[key]
+      // Append
+      current = current[key]
+      if (current is List) {
+        current = current[-1] || {}
       }
-
     }
     return current
   }
@@ -136,13 +131,22 @@ class TomlMapBuilder {
 
   visitInlineTable(table) {
     var map = {}
+    var tableKeyPath = []
+    if (table.key != null) {
+      tableKeyPath = evaluate(table.key)
+    }
+
     for (pair in table.pairs) {
       var keyPath = evaluate(pair.key)
-      var finalMap = traverseMap(map, keyPath[0...-1])
-      if (finalMap.containsKey(keyPath[-1])) {
-        Fiber.abort("Redefining [%(pair.key)] with table")
+      var finalMap = traverseMap(map, keyPath[0...-1], CreationStrategy.ALLOW)
+      var value = evaluate(pair.value)
+      var fullKey = TomlKey.new(ListUtils.concat(tableKeyPath, keyPath)).toString
+      if (finalMap.containsKey(keyPath[-1]) || (_symbolTable.containsKey(fullKey) && _symbolTable[fullKey] != TomlValue)) {
+        Fiber.abort("Redefining [%(pair.key)] with %(value)")
       }
-      finalMap[keyPath[-1]] = evaluate(pair)
+
+      finalMap[keyPath[-1]] = value
+      _symbolTable[fullKey] = TomlValue
     }
     return map
   }
@@ -152,40 +156,14 @@ class TomlMapBuilder {
     var tablePath = []
     if (table.key != null) {
       tablePath = evaluate(table.key)
-      currentTable = traverseMap(tablePath)
-      //currentTable[tablePath[-1]] = visitInlineTable(table)
+      currentTable = traverseMap(tablePath[0...-1])
+      if (_symbolTable.containsKey(table.key.toString)) {
+        Fiber.abort("REDEFINE")
+      }
+      currentTable[tablePath[-1]] = visitInlineTable(table)
     } else {
       currentTable = _map
-      //_map = visitInlineTable(table)
-    }
-
-    // TODO: Disallow redeclaration of tables
-    //var map = traverseMap(key)
-
-    for (pair in table.pairs) {
-      var mapTablePath = tablePath[0..-1]
-      var keyPath = evaluate(pair.key)
-      if (keyPath.count > 1) {
-        for (key in keyPath[0...-1]) {
-          mapTablePath.add(key)
-        }
-      }
-      var finalMap = traverseMap(mapTablePath)
-      if (finalMap.containsKey(keyPath[-1])) {
-        Fiber.abort("Attempting to redefine %(pair.key) with %(pair.value)")
-      }
-      finalMap[keyPath[-1]] = evaluate(pair)
-
-
-      /*
-      if (_symbolTable.containsKey(table.key.toString) && _symbolTable[table.key.toString] != TomlArrayTable) {
-        System.print(_symbolTable)
-          Fiber.abort("Attempting to redefine static array %(table.key) as array of tables")
-      } else {
-        _symbolTable[table.key.toString] = TomlArrayTable
-      }
-      */
-
+      _map = visitInlineTable(table)
     }
 
     return currentTable
@@ -193,13 +171,14 @@ class TomlMapBuilder {
 
   visitArrayTable(table) {
     var tableArrayPath = evaluate(table.key)
+
     if (_symbolTable.containsKey(table.key.toString) && _symbolTable[table.key.toString] != TomlArrayTable) {
-      System.print(_symbolTable)
       Fiber.abort("Attempting to redefine static array %(table.key) as array of tables")
     } else {
       _symbolTable[table.key.toString] = TomlArrayTable
     }
-    var container = traverseMap(tableArrayPath[0...-1])
+
+    var container = traverseMap(_map, tableArrayPath[0...-1], CreationStrategy.DENY)
     var tableKey = tableArrayPath[-1]
 
     if (container is List) {
@@ -226,4 +205,15 @@ class TomlMapBuilder {
 
     return _map
   }
+}
+
+class ListUtils {
+  static concat(list1, list2) {
+    var output = list1[0..-1]
+    for (item in list2) {
+      output.add(item)
+    }
+    return output
+  }
+
 }
