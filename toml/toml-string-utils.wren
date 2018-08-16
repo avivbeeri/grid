@@ -7,6 +7,23 @@ class StringUtils {
     return output
   }
 
+  static normaliseNewLines(str) {
+    var output = ""
+    var finish = str.count
+    var i = 0
+    while (i < finish) {
+      var char = str[i]
+      var next = (i+1) < finish ? str[i+1] : "\0"
+      if (char == "\r" && next == "\n") {
+        i = i + 1
+      } else {
+        output = output + char
+        i = i + 1
+      }
+    }
+    return output
+  }
+
   static unescape(value) {
 
     var EscapeChars = StringUtils.EscapeChars

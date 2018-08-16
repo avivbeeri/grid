@@ -43,13 +43,15 @@ class Token {
       _type == TomlToken.DATE ||
       _type == TomlToken.TIME ||
       _type == TomlToken.DATETIME ||
-      _type == TomlToken.BASIC_STRING ||
-      _type == TomlToken.LITERAL_STRING ||
-      _type == TomlToken.MULTILINE_BASIC_STRING ||
-      _type == TomlToken.MULTILINE_LITERAL_STRING ||
       _type == TomlToken.INTEGER ||
       _type == TomlToken.FLOAT) {
       return "%(_type)(%(_lexeme))"
+    }
+    if (_type == TomlToken.BASIC_STRING ||
+      _type == TomlToken.LITERAL_STRING ||
+      _type == TomlToken.MULTILINE_BASIC_STRING ||
+      _type == TomlToken.MULTILINE_LITERAL_STRING) {
+      return "%(_type)(%(_literal))"
     }
     if (_literal != null) {
       return _literal.toString

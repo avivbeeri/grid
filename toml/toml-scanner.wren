@@ -4,7 +4,7 @@ import "./toml/toml-string-utils" for StringUtils
 class TomlScanner {
   construct new(source) {
     _tokens = []
-    _source = source
+    _source = StringUtils.normaliseNewLines(source)
 
     _start = 0
     _current = 0
@@ -23,6 +23,9 @@ class TomlScanner {
 
   scanToken() {
     var char = advance()
+    if (char == "\r") {
+      Fiber.abort("Couldn't strip \\r")
+    }
     if (char == "[") {
       addToken(TomlToken.LEFT_BRACKET)
     } else if (char == "]") {
@@ -87,10 +90,11 @@ class TomlScanner {
     var trim = 0
 
     if (peek() == quoteType && peekNext() == quoteType) {
-      type = quoteType == "\"" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
+      type = stringType == "basic" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
       size = 3
       advance()
       advance()
+
       if (peek() == "\n") {
         trim = 1
         advance()
@@ -101,11 +105,13 @@ class TomlScanner {
       if (peek() == "\n" && (type == TomlToken.BASIC_STRING || type == TomlToken.LITERAL_STRING)) {
         Fiber.abort("Trying to split single line string across multiple lines")
       }
-      if (peek() == "\\" && stringType != "literal") {
-        if (StringUtils.EscapeChars.containsKey(peekNext())) {
+      if (peek() == "\\" && stringType == "basic") {
+        if (StringUtils.EscapeChars.containsKey(peekNext()) || isWhitespace(peekNext()) || isNewline(peekNext())) {
           advance()
         } else if (size == 1) {
-          Fiber.abort("Invalid escape sequence in string")
+          var value = StringUtils.substring(_source, _start + size + trim, _current)
+          System.print(peekNext())
+          Fiber.abort("%(value): Invalid escape sequence in string")
         }
       }
       advance()
@@ -121,11 +127,37 @@ class TomlScanner {
       advance()
     }
     var value = StringUtils.substring(_source, _start + size + trim, _current - size)
+    /*
+    if (type == TomlToken.MULTILINE_BASIC_STRING) {
+      var outValue = ""
+      var i = 0
+      var advancing = false
+      while (i < value.count) {
+        var char = value[i]
+        if (advancing) {
+          if (isNewline(char)) {
+            advancing = false
+          } else {
+            System.print("Skipping: %(char)")
+          }
+        } else {
+          if (char == "\\") {
+            advancing = true
+            outValue = outValue + "\n"
+            System.print(outValue)
+          } else {
+            outValue = outValue + char
+          }
+        }
+
+        i = i + 1
+      }
+      value = outValue
+    }
+    System.print("Output: %(StringUtils.unescape(value))")
+    */
 
     var outputValue = stringType == "basic" ? StringUtils.unescape(value) : value
-    // Handle escaped characters
-
-    // TODO: Unescape values
     addToken(type, outputValue)
   }
 
@@ -138,6 +170,13 @@ class TomlScanner {
 
   isAlphaNumeric(char) {
     return isDigit(char) || isAlpha(char) || char == "_" || char == "-"
+  }
+
+  isWhitespace(char) {
+    return char == " " || char == "\t"
+  }
+  isNewline(char) {
+    return char == "\n"
   }
 
   number(char) {
