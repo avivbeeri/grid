@@ -22,30 +22,22 @@ var Yellow = Color.rgb(255, 162, 00, 00)
 // ------- GAME CODE -------
 // -------------------------
 class Game {
+  static gameData { __gameData }
   static init() {
     __state = MainGame
-    __state.init()
 
-     //var text = "[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [fruit.physical]\r\n    color = \"red\"\r\n    shape = \"round\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"granny smith\"\r\n\r\n[[fruit]]\r\n  name = \"banana\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"plantain\""
-     //var text = "[fruit] fruit = [] \n [[fruit]] # Not allowed"
-    //var text = "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
-
-     var text = "[fruit] \r\n"
+     var text = "[[entities]] \n"
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
-     text = text + "number = 0b1110 \n"
-     text = text + "basic = \"Hello \\nworld\" \n"
-     text = text + "literal = 'Hello \\nworld' \n"
-     text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
-     text = text + "str1 = \"The quick brown fox jumps over the lazy dog.\"\r\n\r\nstr2 = \"\"\"\r\nThe quick brown \\\r\n\r\n\r\n  fox jumps over \\\r\n    the lazy dog.\"\"\"\r\n\r\nstr3 = \"\"\"\\\r\n       The quick brown \\\r\n       fox jumps over \\\r\n       the lazy dog.\\\r\n       \"\"\""
-     text = text + "[fruit.\"stuff\"] \n"
-     text = text + "test.escape = \"\"\"hello\\    \n    whatsup\"\"\" \n"
-     text = text + "test.literal = 'hel\\tlo whatsup' \n"
-     // text = text + "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
+     text = text + "position.x = 20 \n"
+     text = text + "position.y = 20 \n"
 
     var document = Toml.run(text)
-    System.print(TomlMapBuilder.new(document).build())
-    System.print("-- END --")
+    __gameData = TomlMapBuilder.new(document).build()
+    System.print(__gameData)
+
+    __state.init()
+
   }
   static update() {
     __state.update()
@@ -201,30 +193,35 @@ class ScrollSystem is GameSystem {
 class RectComponent is Component {
   construct new(id) {
     super(id)
-    setValues(Color.white, 5, 5)
+    setValues(Color.white, 5, 5, 0)
   }
 
   construct new(id, color) {
     super(id)
-    setValues(color, 5, 5)
+    setValues(color, 5, 5, 0)
   }
 
   construct new(id, color, w, h) {
     super(id)
-    _color = color
-    _width = w
-    _height = h
+    setValues(color, w, h, 0)
   }
 
-  setValues(color, w, h) {
+  construct new(id, color, w, h, z) {
+    super(id)
+    setValues(color, w, h, z)
+  }
+
+  setValues(color, w, h, z) {
     _color = color
     _width = w
     _height = h
+    _z = z
   }
 
   color { _color }
   width { _width }
   height { _height }
+  z { _z }
 }
 
 class RenderSystem is GameSystem {
@@ -233,10 +230,36 @@ class RenderSystem is GameSystem {
   }
   update() {
     Canvas.cls()
-    for (entity in entities) {
+    var sortedEntities = entities[0..-1]
+      System.write("[")
+    sortedEntities.each {|entity|
+      System.write(entity.getComponent(RectComponent).z)
+      System.write(", ")
+    }
+    System.write("]\n")
+
+    for (i in 0...sortedEntities.count) {
+      var holePosition = i
+      var entity = sortedEntities[i]
+      var rect = entity.getComponent(RectComponent)
+      while (holePosition > 0 && sortedEntities[holePosition - 1].getComponent(RectComponent).z > rect.z) {
+        sortedEntities[holePosition] = sortedEntities[holePosition - 1]
+        holePosition = holePosition - 1
+      }
+      sortedEntities[holePosition] = entity
+    }
+    System.write("[")
+    sortedEntities.each {|entity|
+      System.write(entity.getComponent(RectComponent).z)
+      System.write(", ")
+
+    }
+    System.write("]\n")
+    for (entity in sortedEntities) {
       var position = entity.getComponent(PositionComponent)
       var rect = entity.getComponent(RectComponent)
       Canvas.rectfill(position.x, position.y, rect.width, rect.height, rect.color)
+
     }
   }
 }
@@ -263,13 +286,16 @@ class MainGame {
     // Create player
     __player = __world.newEntity()
     __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent])
+    System.print(Game.gameData)
+    __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
+    __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
     __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
 
     for (y in 0...(Canvas.height/8)) {
       for (x in 0...(Canvas.width/8)) {
         var tile = __world.newEntity()
         tile.addComponents([PositionComponent, RectComponent, TileComponent])
-        tile.setComponent(RectComponent.new(__player.id, Color.white, 8, 8))
+        tile.setComponent(RectComponent.new(__player.id, Color.white, 8, 8, -1))
         tile.getComponent(PositionComponent).x = x * 8
         tile.getComponent(PositionComponent).y = y * 8
       }
