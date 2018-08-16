@@ -273,11 +273,43 @@ class TomlScanner {
           Fiber.abort("Invalid float exponent")
         }
       }
+
       var numString = StringUtils.substring(_source, _start, _current)
-      if (numString.count > 1 && (numString[1] == "o" || numString[1] == "b")) {
-        Fiber.abort("Binary and octal numbers are not supported")
+      var value = Num.fromString(numString)
+
+      if (numString.count > 1) {
+        if (numString[1] == "o") {
+          numString = StringUtils.substring(numString, 2, numString.count)
+          var totalPlaces = numString.count
+          var result = 0
+          for (i in 1..totalPlaces) {
+            var number = Num.fromString(numString[-i])
+            if (number < 0 || number > 7) {
+              Fiber.abort("%(numString): Invalid octal value")
+            }
+            var place = number * (8.pow(i-1))
+            result = result + place
+          }
+          value = result
+        } else if (numString[1] == "b") {
+          numString = StringUtils.substring(numString, 2, numString.count)
+          var totalPlaces = numString.count
+          var result = 0
+          for (i in 1..totalPlaces) {
+            var number = Num.fromString(numString[-i])
+            if (number < 0 || number > 1) {
+              Fiber.abort("%(numString): Invalid binary value")
+            }
+            var place = number * (2.pow(i-1))
+            result = result + place
+          }
+          value = result
+        } else {
+          Fiber.abort("%(numString): Unsupported base prefix")
+        }
       }
-      addToken(type, Num.fromString(numString))
+
+      addToken(type, value)
     } else {
       if (type == TomlToken.DATETIME) {
         if (peek() == "Z") {

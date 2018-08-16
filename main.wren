@@ -33,6 +33,7 @@ class Game {
      var text = "[fruit] \r\n"
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
+     text = text + "number = 0b1110 \n"
      text = text + "basic = \"Hello \\nworld\" \n"
      text = text + "literal = 'Hello \\nworld' \n"
      text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
@@ -40,7 +41,7 @@ class Game {
      text = text + "[fruit.\"stuff\"] \n"
      text = text + "test.escape = \"\"\"hello\\    \n    whatsup\"\"\" \n"
      text = text + "test.literal = 'hel\\tlo whatsup' \n"
-     text = text + "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
+     // text = text + "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
 
     var document = Toml.run(text)
     System.print(TomlMapBuilder.new(document).build())
