@@ -28,16 +28,18 @@ class Game {
 
      //var text = "[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [fruit.physical]\r\n    color = \"red\"\r\n    shape = \"round\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"granny smith\"\r\n\r\n[[fruit]]\r\n  name = \"banana\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"plantain\""
      //var text = "[fruit] fruit = [] \n [[fruit]] # Not allowed"
-     var text = "[fruit] \r\n"
-     //text = text + "basic = \"Hello \\nworld\" \n"
-     //text = text + "basic2.broken = \"Hello \nworld\" \n"
-     //text = text + "literal = 'Hello \\nworld' \n"
-     //text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
-     // text = text + "str1 = \"The quick brown fox jumps over the lazy dog.\"\r\n\r\nstr2 = \"\"\"\r\nThe quick brown \\\r\n\r\n\r\n  fox jumps over \\\r\n    the lazy dog.\"\"\"\r\n\r\nstr3 = \"\"\"\\\r\n       The quick brown \\\r\n       fox jumps over \\\r\n       the lazy dog.\\\r\n       \"\"\""
-     //     text = text + "test = 'hello"
-     text = text + "test.escape = \"he\\allo\""
-    // var text = "[test] \n obvious.thing = 42"
     //var text = "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
+
+     var text = "[fruit] \r\n"
+     //text = text + "basic2.broken = \"Hello \nworld\" \n"
+     // text = text + "test.broken = 'hello"
+     text = text + "basic = \"Hello \\nworld\" \n"
+     text = text + "literal = 'Hello \\nworld' \n"
+     text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
+     text = text + "str1 = \"The quick brown fox jumps over the lazy dog.\"\r\n\r\nstr2 = \"\"\"\r\nThe quick brown \\\r\n\r\n\r\n  fox jumps over \\\r\n    the lazy dog.\"\"\"\r\n\r\nstr3 = \"\"\"\\\r\n       The quick brown \\\r\n       fox jumps over \\\r\n       the lazy dog.\\\r\n       \"\"\""
+     text = text + "test.escape = \"\"\"hello\\    \n    whatsup\"\"\" \n"
+     text = text + "test.literal = 'hel\\alo whatsup' \n"
+
     var document = Toml.run(text)
     System.print(TomlMapBuilder.new(document).build())
     System.print("-- END --")

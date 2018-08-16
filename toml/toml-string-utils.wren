@@ -33,23 +33,22 @@ class StringUtils {
       if (value[i] == "\\") {
          i = i + 1
          var escapeChar = value[i]
-         if (EscapeChars[escapeChar] is Num) {
-           i = i + 1
-           var code = ""
-           for (j in 0...EscapeChars[escapeChar]) {
-             code = code + value[i+j]
-           }
-           outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
-           i = i + EscapeChars[escapeChar] - 1
-         } else if (escapeChar.codePoints[0] > 31) {
-           System.print(escapeChar)
-           if (EscapeChars.containsKey(escapeChar)) {
-             outputValue = outputValue + EscapeChars[escapeChar]
+         if (EscapeChars.containsKey(escapeChar)) {
+           if (EscapeChars[escapeChar] is Num) {
+             i = i + 1
+             var code = ""
+             for (j in 0...EscapeChars[escapeChar]) {
+               code = code + value[i+j]
+             }
+             outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
+             i = i + EscapeChars[escapeChar] - 1
            } else {
-             Fiber.abort("Invalid escape sequence: \\%(escapeChar)")
+             System.print("DEBUG-1")
+             outputValue = outputValue + "\\" + value[i]
            }
          } else {
            outputValue = outputValue + "\\" + value[i]
+          // i = i - 1
          }
       } else {
         outputValue = outputValue + value[i]
