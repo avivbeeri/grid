@@ -38,7 +38,7 @@ class Game {
      text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
      text = text + "str1 = \"The quick brown fox jumps over the lazy dog.\"\r\n\r\nstr2 = \"\"\"\r\nThe quick brown \\\r\n\r\n\r\n  fox jumps over \\\r\n    the lazy dog.\"\"\"\r\n\r\nstr3 = \"\"\"\\\r\n       The quick brown \\\r\n       fox jumps over \\\r\n       the lazy dog.\\\r\n       \"\"\""
      text = text + "test.escape = \"\"\"hello\\    \n    whatsup\"\"\" \n"
-     text = text + "test.literal = 'hel\\alo whatsup' \n"
+     text = text + "test.literal = 'hel\\tlo whatsup' \n"
 
     var document = Toml.run(text)
     System.print(TomlMapBuilder.new(document).build())

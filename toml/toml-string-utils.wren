@@ -35,6 +35,7 @@ class StringUtils {
          var escapeChar = value[i]
          if (EscapeChars.containsKey(escapeChar)) {
            if (EscapeChars[escapeChar] is Num) {
+             // Handle the \u and \U unicode escapes
              i = i + 1
              var code = ""
              for (j in 0...EscapeChars[escapeChar]) {
@@ -43,12 +44,11 @@ class StringUtils {
              outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
              i = i + EscapeChars[escapeChar] - 1
            } else {
-             System.print("DEBUG-1")
-             outputValue = outputValue + "\\" + value[i]
+             outputValue = outputValue + EscapeChars[escapeChar]
            }
          } else {
+           // Invalid escape sequence - We don't blow up here as that choice is for the client
            outputValue = outputValue + "\\" + value[i]
-          // i = i - 1
          }
       } else {
         outputValue = outputValue + value[i]
