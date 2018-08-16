@@ -67,6 +67,16 @@ class PositionComponent is Component {
   y=(i) { _position = Point.new(_position.x, i)}
 }
 
+class PhysicsComponent is Component {
+  construct new(id) {
+    super(id)
+    _velocity = Point.new(0, 0)
+    _acceleration = Point.new(0, 0)
+  }
+  velocity { _velocity }
+  acceleration { _acceleration }
+}
+
 class PlayerControlComponent is Component {
   construct new(id) {
     super(id)
@@ -110,6 +120,24 @@ class TileSystem is GameSystem {
   }
 }
 
+class PhysicsSystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, PhysicsComponent])
+  }
+
+  update() {
+    for (entity in entities) {
+      var physics = entity.getComponent(PhysicsComponent)
+      var acceleration = physics.acceleration
+      var velocity = physics.velocity
+      var position = entity.getComponent(PositionComponent)
+
+      position.x = position.x + velocity.x
+      position.y = position.y + velocity.y
+    }
+  }
+}
+
 class EnemyAISystem is GameSystem {
   construct init(world) {
     super(world, [PositionComponent, EnemyAIComponent])
@@ -149,12 +177,12 @@ class EnemyAISystem is GameSystem {
 
 class PlayerControlSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, PlayerControlComponent])
+    super(world, [PlayerControlComponent, PhysicsComponent])
   }
 
   update() {
     for (entity in entities) {
-      var position = entity.getComponent(PositionComponent)
+      var velocity = entity.getComponent(PhysicsComponent).velocity
       var x = 0
       var y = 0
 
@@ -170,8 +198,8 @@ class PlayerControlSystem is GameSystem {
       if (Keyboard.isKeyDown("space")) {
       }
 
-      position.x = position.x + x
-      position.y = position.y + y
+      velocity.x = x
+      velocity.y = y
     }
   }
 }
@@ -231,13 +259,9 @@ class RenderSystem is GameSystem {
   update() {
     Canvas.cls()
     var sortedEntities = entities[0..-1]
-      System.write("[")
-    sortedEntities.each {|entity|
-      System.write(entity.getComponent(RectComponent).z)
-      System.write(", ")
-    }
-    System.write("]\n")
 
+    // Insertion sort the entities
+    // TODO: We should cache this
     for (i in 0...sortedEntities.count) {
       var holePosition = i
       var entity = sortedEntities[i]
@@ -248,13 +272,7 @@ class RenderSystem is GameSystem {
       }
       sortedEntities[holePosition] = entity
     }
-    System.write("[")
-    sortedEntities.each {|entity|
-      System.write(entity.getComponent(RectComponent).z)
-      System.write(", ")
 
-    }
-    System.write("]\n")
     for (entity in sortedEntities) {
       var position = entity.getComponent(PositionComponent)
       var rect = entity.getComponent(RectComponent)
@@ -276,16 +294,18 @@ class MainGame {
     __world.addSystem(PlayerControlSystem)
     __world.addSystem(EnemyAISystem)
     __world.addSystem(TileSystem)
+    __world.addSystem(PhysicsSystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
     __world.addComponentManager(EnemyAIComponent)
     __world.addComponentManager(PlayerControlComponent)
+    __world.addComponentManager(PhysicsComponent)
     __world.addComponentManager(RectComponent)
     __world.addComponentManager(TileComponent)
 
     // Create player
     __player = __world.newEntity()
-    __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent])
+    __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent, PhysicsComponent])
     System.print(Game.gameData)
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
