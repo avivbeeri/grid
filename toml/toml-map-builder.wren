@@ -141,7 +141,6 @@ class TomlMapBuilder {
       var finalMap = traverseMap(map, keyPath[0...-1], CreationStrategy.ALLOW)
       var value = evaluate(pair.value)
       var fullKey = TomlKey.new(ListUtils.concat(tableKeyPath, keyPath)).toString
-      System.print(finalMap)
       if (!(finalMap is Map)) {
         Fiber.abort("Key %(keyPath[0...-1]) has already been directly defined")
       }

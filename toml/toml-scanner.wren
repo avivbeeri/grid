@@ -87,30 +87,91 @@ class TomlScanner {
     var type = quoteType == "\"" ? TomlToken.BASIC_STRING : TomlToken.LITERAL_STRING
     var stringType = type == TomlToken.BASIC_STRING ? "basic" : "literal"
     var multiline = false
-    var size = 1
-    var trim = 0
+    var quoteSize = 1
 
-    if (peek() == quoteType && peekNext() == quoteType) {
+    if (peek() == quoteType) {
+      advance()
       consume(quoteType, "Expected %(quoteType) to initiate string")
+
       type = stringType == "basic" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
       multiline = true
-      size = 3
-      // advance()
-      advance()
-
-      /*
-      if (peek() == "\n") {
-        trim = 1
-        advance()
-      }
-      */
+      quoteSize = 3
     }
     // TOML allows the first \n to be ignored in multiline strings
     while (peek() != quoteType && !isAtEnd()) {
-      /*
-      if (peek() == "\n" && (type == TomlToken.BASIC_STRING || type == TomlToken.LITERAL_STRING)) {
-        Fiber.abort("Trying to split single line string across multiple lines")
+      advance()
+    }
+
+    /*
+    if (isAtEnd()) {
+      Fiber.abort("Unterminated string")
+      return
+    }
+    */
+
+    consume(quoteType, "Unterminated string")
+    if (multiline) {
+      consume(quoteType, "Expected %(quoteType) to terminate string")
+      consume(quoteType, "Expected %(quoteType) to terminate string")
+    }
+    var value = StringUtils.substring(_source, _start+quoteSize, _current - quoteSize)
+    if (!multiline) {
+      value = singleLineString(stringType, value)
+    } else {
+      value = multilineString(stringType, value)
+    }
+
+    var outputValue = stringType == "basic" ? StringUtils.unescape(value) : value
+    addToken(type, outputValue)
+  }
+
+  singleLineString(stringType, str) {
+    var i = 0
+    var out = ""
+    while (i < str.count) {
+      var char = str[i]
+      var nextChar = (i + 1) < str.count ? str[i+1] : "\n"
+      if (char == "\n") {
+        Fiber.abort("%(stringType) string must be on a single line")
       }
+      if (char == "\\") {
+        if (!StringUtils.EscapeChars.containsKey(nextChar)) {
+          Fiber.abort("\\%(nextChar): Invalid escape sequence in string")
+        }
+      }
+      out = out + char
+      i = i + 1
+    }
+    return out
+  }
+
+  multilineString(stringType, str) {
+    var i = 0
+    var out = ""
+    var advance = true
+    while (i < str.count) {
+      var char = str[i]
+      var nextChar = (i + 1) < str.count ? str[i+1] : "\n"
+      if (!isWhitespace(char) && !isNewline(char)) {
+        advance = false
+      }
+      if (!advance) {
+        if (char == "\\") {
+          if (isWhitespace(nextChar) || isNewline(nextChar)) {
+            advance = true
+          } else if (!StringUtils.EscapeChars.containsKey(nextChar)) {
+            Fiber.abort("'%(char)': Invalid escape sequence in string")
+          }
+        }
+        if (!advance) {
+          out = out + char
+        }
+      }
+      i = i + 1
+    }
+    return out
+
+      /*
       if (peek() == "\\" && stringType == "basic") {
         if (StringUtils.EscapeChars.containsKey(peekNext()) || isWhitespace(peekNext()) || isNewline(peekNext())) {
           advance()
@@ -121,52 +182,6 @@ class TomlScanner {
         }
       }
       */
-      advance()
-    }
-
-    if (isAtEnd()) {
-      Fiber.abort("Unterminated string")
-      return
-    }
-
-    consume(quoteType, "Unterminated string")
-    if (multiline) {
-      consume(quoteType, "Expected %(quoteType) to terminate string")
-      consume(quoteType, "Expected %(quoteType) to terminate string")
-    }
-    var value = StringUtils.substring(_source, _start + size + trim, _current - size)
-    /*
-    if (type == TomlToken.MULTILINE_BASIC_STRING) {
-      var outValue = ""
-      var i = 0
-      var advancing = false
-      while (i < value.count) {
-        var char = value[i]
-        if (advancing) {
-          if (isNewline(char)) {
-            advancing = false
-          } else {
-            System.print("Skipping: %(char)")
-          }
-        } else {
-          if (char == "\\") {
-            advancing = true
-            outValue = outValue + "\n"
-            System.print(outValue)
-          } else {
-            outValue = outValue + char
-          }
-        }
-
-        i = i + 1
-      }
-      value = outValue
-    }
-    System.print("Output: %(StringUtils.unescape(value))")
-    */
-
-    var outputValue = stringType == "basic" ? StringUtils.unescape(value) : value
-    addToken(type, outputValue)
   }
 
   isDigit(char) {

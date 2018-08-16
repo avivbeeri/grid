@@ -42,7 +42,12 @@ class StringUtils {
            outputValue = outputValue + String.fromCodePoint(Num.fromString(code))
            i = i + EscapeChars[escapeChar] - 1
          } else if (escapeChar.codePoints[0] > 31) {
-           outputValue = outputValue + EscapeChars[escapeChar]
+           System.print(escapeChar)
+           if (EscapeChars.containsKey(escapeChar)) {
+             outputValue = outputValue + EscapeChars[escapeChar]
+           } else {
+             Fiber.abort("Invalid escape sequence: \\%(escapeChar)")
+           }
          } else {
            outputValue = outputValue + "\\" + value[i]
          }
