@@ -29,9 +29,10 @@ class Game {
      //var text = "[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [fruit.physical]\r\n    color = \"red\"\r\n    shape = \"round\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"granny smith\"\r\n\r\n[[fruit]]\r\n  name = \"banana\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"plantain\""
      //var text = "[fruit] fruit = [] \n [[fruit]] # Not allowed"
      var text = "[fruit] \r\n"
-     text = text + "basic = \"Hello world\" \n"
+     text = text + "basic = \"Hello \\nworld\" \n"
+     text = text + "basic2.broken = \"Hello \nworld\" \n"
      text = text + "literal = 'Hello \\nworld' \n"
-     text = text + "multiline-basic = \"\"\"\ntoday \\\n world\"\"\" \n"
+     text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
     // var text = "[test] \n obvious.thing = 42"
     //var text = "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
     var document = Toml.run(text)
