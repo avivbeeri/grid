@@ -135,7 +135,7 @@ class TomlScanner {
         Fiber.abort("%(stringType) string must be on a single line")
       }
       if (char == "\\") {
-        if (!StringUtils.EscapeChars.containsKey(nextChar)) {
+        if (stringType == "basic" && !StringUtils.EscapeChars.containsKey(nextChar)) {
           Fiber.abort("\\%(nextChar): Invalid escape sequence in string")
         }
       }
@@ -159,7 +159,7 @@ class TomlScanner {
         if (char == "\\") {
           if (isWhitespace(nextChar) || isNewline(nextChar)) {
             advance = true
-          } else if (!StringUtils.EscapeChars.containsKey(nextChar)) {
+          } else if (stringType == "basic" && !StringUtils.EscapeChars.containsKey(nextChar)) {
             Fiber.abort("'%(char)': Invalid escape sequence in string")
           }
         }
