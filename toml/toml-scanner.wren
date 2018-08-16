@@ -277,7 +277,7 @@ class TomlScanner {
       var numString = StringUtils.substring(_source, _start, _current)
       var value = Num.fromString(numString)
 
-      if (numString.count > 1) {
+      if (numString.count > 1 && numString[0] == "0") {
         if (numString[1] == "o") {
           numString = StringUtils.substring(numString, 2, numString.count)
           var totalPlaces = numString.count
