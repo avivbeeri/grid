@@ -86,22 +86,28 @@ class TomlScanner {
     // TODO: Support non-basic and multi-line strings
     var type = quoteType == "\"" ? TomlToken.BASIC_STRING : TomlToken.LITERAL_STRING
     var stringType = type == TomlToken.BASIC_STRING ? "basic" : "literal"
+    var multiline = false
     var size = 1
     var trim = 0
 
     if (peek() == quoteType && peekNext() == quoteType) {
+      consume(quoteType, "Expected %(quoteType) to initiate string")
       type = stringType == "basic" ? TomlToken.MULTILINE_BASIC_STRING : TomlToken.MULTILINE_LITERAL_STRING
+      multiline = true
       size = 3
-      advance()
+      // advance()
       advance()
 
+      /*
       if (peek() == "\n") {
         trim = 1
         advance()
       }
+      */
     }
     // TOML allows the first \n to be ignored in multiline strings
     while (peek() != quoteType && !isAtEnd()) {
+      /*
       if (peek() == "\n" && (type == TomlToken.BASIC_STRING || type == TomlToken.LITERAL_STRING)) {
         Fiber.abort("Trying to split single line string across multiple lines")
       }
@@ -114,6 +120,7 @@ class TomlScanner {
           Fiber.abort("%(value): Invalid escape sequence in string")
         }
       }
+      */
       advance()
     }
 
@@ -121,10 +128,11 @@ class TomlScanner {
       Fiber.abort("Unterminated string")
       return
     }
-    advance()
-    if (peek() == quoteType && peekNext() == quoteType) {
-      advance()
-      advance()
+
+    consume(quoteType, "Unterminated string")
+    if (multiline) {
+      consume(quoteType, "Expected %(quoteType) to terminate string")
+      consume(quoteType, "Expected %(quoteType) to terminate string")
     }
     var value = StringUtils.substring(_source, _start + size + trim, _current - size)
     /*
@@ -320,5 +328,12 @@ class TomlScanner {
 
     _current = _current + 1
     return true
+  }
+
+  consume(expected, message) {
+    if (match(expected)) {
+      return true
+    }
+    Fiber.abort(message)
   }
 }
