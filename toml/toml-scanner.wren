@@ -274,7 +274,7 @@ class TomlScanner {
         }
       }
       var numString = StringUtils.substring(_source, _start, _current)
-      if (numString[1] == "o" || numString[1] == "b") {
+      if (numString.count > 1 && (numString[1] == "o" || numString[1] == "b")) {
         Fiber.abort("Binary and octal numbers are not supported")
       }
       addToken(type, Num.fromString(numString))

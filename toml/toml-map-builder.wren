@@ -161,9 +161,10 @@ class TomlMapBuilder {
       tablePath = evaluate(table.key)
       currentTable = traverseMap(tablePath[0...-1])
       if (_symbolTable.containsKey(table.key.toString)) {
-        Fiber.abort("REDEFINE")
+        Fiber.abort("Attempting to redefine key [%(table.key)] as tables")
       }
       currentTable[tablePath[-1]] = visitInlineTable(table)
+      _symbolTable[table.key.toString] = TomlTable
     } else {
       currentTable = _map
       _map = visitInlineTable(table)
@@ -176,7 +177,7 @@ class TomlMapBuilder {
     var tableArrayPath = evaluate(table.key)
 
     if (_symbolTable.containsKey(table.key.toString) && _symbolTable[table.key.toString] != TomlArrayTable) {
-      Fiber.abort("Attempting to redefine static array %(table.key) as array of tables")
+      Fiber.abort("Attempting to redefine key [[%(table.key)]] as array of tables")
     } else {
       _symbolTable[table.key.toString] = TomlArrayTable
     }

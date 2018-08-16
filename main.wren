@@ -37,8 +37,10 @@ class Game {
      text = text + "literal = 'Hello \\nworld' \n"
      text = text + "multiline = \"\"\"\ntoday \n world\"\"\" \n"
      text = text + "str1 = \"The quick brown fox jumps over the lazy dog.\"\r\n\r\nstr2 = \"\"\"\r\nThe quick brown \\\r\n\r\n\r\n  fox jumps over \\\r\n    the lazy dog.\"\"\"\r\n\r\nstr3 = \"\"\"\\\r\n       The quick brown \\\r\n       fox jumps over \\\r\n       the lazy dog.\\\r\n       \"\"\""
+     text = text + "[fruit.\"stuff\"] \n"
      text = text + "test.escape = \"\"\"hello\\    \n    whatsup\"\"\" \n"
      text = text + "test.literal = 'hel\\tlo whatsup' \n"
+     text = text + "# INVALID TOML DOC\r\n[[fruit]]\r\n  name = \"apple\"\r\n\r\n  [[fruit.variety]]\r\n    name = \"red delicious\"\r\n\r\n  # This table conflicts with the previous table\r\n  [fruit.variety]\r\n    name = \"granny smith\""
 
     var document = Toml.run(text)
     System.print(TomlMapBuilder.new(document).build())
