@@ -120,7 +120,10 @@ class TomlParser {
     if (match([TomlToken.BASIC_STRING, TomlToken.LITERAL_STRING, TomlToken.MULTILINE_LITERAL_STRING, TomlToken.MULTILINE_BASIC_STRING])) {
       return TomlLiteral.new(previous().literal, TomlType.STRING)
     }
-    // TODO: Handle date/time
+
+    if (match([TomlToken.TIME, TomlToken.DATE, TomlToken.DATETIME])) {
+      return TomlLiteral.new(previous().literal, TomlType.DATETIME)
+    }
 
     var num = number()
     if (num != null) {
