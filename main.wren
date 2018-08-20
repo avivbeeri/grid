@@ -102,23 +102,21 @@ class EnemyAIComponent is Component {
   dir { _dir }
   dir=(v) { _dir = v }
 }
+
+/*
+ DEPRECIATED
 class TileSystem is GameSystem {
   construct init(world) {
-    super(world, [TileComponent, RectComponent])
-    _t = 0
+    super(world, [TileComponent])
   }
 
   update() {
-    _t = _t + 1
-    if (_t > 60) {
-      _t = 0
       for (entity in entities) {
-        var rect = entity.getComponent(RectComponent)
-        // rect.setValues(rect.color == Color.white ? Color.black : Color.white, 8, 8)
       }
     }
   }
 }
+*/
 
 class PhysicsSystem is GameSystem {
   construct init(world) {
@@ -218,60 +216,65 @@ class ScrollSystem is GameSystem {
   }
 }
 
+class Renderable {
+  render(position) {}
+}
+
 class RenderComponent is Component {
   construct new(id) {
     super(id)
-    setRenderFunction(Fn.new {|entity|
-
-    })
+    setValues([], 0)
   }
 
-  construct new(id, fn) {
+  construct new(id, renderables) {
     super(id)
-    setRenderFunction(fn)
+    setValues(renderables, 0)
   }
 
-  setRenderFunction(fn) {
-    _fn = fn
+  construct new(id, renderables, z) {
+    super(id)
+    setValues(renderables, z)
   }
 
-  render() {
-    _fn.call(this)
+  setValues(renderables, z) {
+    if (renderables.where{|r| !(r is Renderable)}.count > 0) {
+      Fiber.abort("Tried to pass non-renderables")
+    }
+    _renderables = renderables
+    _z = z
   }
+
+  renderables { _renderables }
+  z { _z }
 }
 
-class RectComponent is Component {
-  construct new(id) {
-    super(id)
-    setValues(Color.white, 5, 5, 0)
+class Rect is Renderable {
+  construct new() {
+    setValues(Color.white, 5, 5)
   }
 
-  construct new(id, color) {
-    super(id)
-    setValues(color, 5, 5, 0)
+  construct new(color) {
+    setValues(color, 5, 5)
   }
 
-  construct new(id, color, w, h) {
-    super(id)
-    setValues(color, w, h, 0)
+  construct new(color, w, h) {
+    setValues(color, w, h)
   }
 
-  construct new(id, color, w, h, z) {
-    super(id)
-    setValues(color, w, h, z)
-  }
-
-  setValues(color, w, h, z) {
+  setValues(color, w, h) {
     _color = color
     _width = w
     _height = h
-    _z = z
+  }
+
+  render(position) {
+    Canvas.rectfill(position.x, position.y, width, height, color)
   }
 
   color { _color }
   width { _width }
   height { _height }
-  z { _z }
+
 }
 
 class RenderSystem is GameSystem {
@@ -287,8 +290,8 @@ class RenderSystem is GameSystem {
     for (i in 0...sortedEntities.count) {
       var holePosition = i
       var entity = sortedEntities[i]
-      var rect = entity.getComponent(RectComponent)
-      while (holePosition > 0 && sortedEntities[holePosition - 1].getComponent(RectComponent).z > rect.z) {
+      var render = entity.getComponent(RenderComponent)
+      while (holePosition > 0 && sortedEntities[holePosition - 1].getComponent(RenderComponent).z > render.z) {
         sortedEntities[holePosition] = sortedEntities[holePosition - 1]
         holePosition = holePosition - 1
       }
@@ -297,8 +300,10 @@ class RenderSystem is GameSystem {
 
     for (entity in sortedEntities) {
       var position = entity.getComponent(PositionComponent)
-      var rect = entity.getComponent(RectComponent)
-      Canvas.rectfill(position.x, position.y, rect.width, rect.height, rect.color)
+      var render = entity.getComponent(RenderComponent)
+      for (obj in render.renderables) {
+        obj.render(position)
+      }
     }
   }
 }
@@ -314,14 +319,14 @@ class MainGame {
     __world = World.new()
     __world.addSystem(PlayerControlSystem)
     __world.addSystem(EnemyAISystem)
-    __world.addSystem(TileSystem)
+    // __world.addSystem(TileSystem)
     __world.addSystem(PhysicsSystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
     __world.addComponentManager(EnemyAIComponent)
     __world.addComponentManager(PlayerControlComponent)
     __world.addComponentManager(PhysicsComponent)
-    __world.addComponentManager(RectComponent)
+    __world.addComponentManager(RenderComponent)
     __world.addComponentManager(TileComponent)
 
     // Create player
@@ -329,13 +334,8 @@ class MainGame {
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
-    __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
-    var playerRender =
-    __player.setComponent(RenderComponent.new(__player.id, Fn.new({|entity|
-      var position = entity.getComponent(PositionComponent)
-      var rect = entity.getComponent(RectComponent)
-      Canvas.rectfill(position.x, position.y, 16, 32, Color.blue)
-    })))
+    // __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
+    __player.setComponent(RenderComponent.new(__player.id, [ Rect.new(Color.blue, 16, 32)]))
 
 
     // Create tilemap
@@ -343,8 +343,8 @@ class MainGame {
     for (y in 0...(Canvas.height/ tileSize)) {
       for (x in 0...(Canvas.width/ tileSize)) {
         var tile = __world.newEntity()
-        tile.addComponents([PositionComponent, RectComponent, TileComponent])
-        tile.setComponent(RectComponent.new(__player.id, Color.black, tileSize, tileSize, -1))
+        tile.addComponents([PositionComponent, RenderComponent, TileComponent])
+        tile.setComponent(RenderComponent.new(__player.id, [Rect.new(Color.darkgray, tileSize, tileSize)], -1))
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
       }
@@ -352,8 +352,8 @@ class MainGame {
 
     // Enemy
     __enemy = __world.newEntity()
-    __enemy.addComponents([PositionComponent, RectComponent, EnemyAIComponent])
-    __enemy.setComponent(RectComponent.new(__enemy.id, Yellow, 8,8))
+    __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent])
+    __enemy.setComponent(RenderComponent.new(__enemy.id, [Rect.new(Yellow, 8,8)]))
     __enemy.getComponent(PositionComponent).y = 50
   }
 
