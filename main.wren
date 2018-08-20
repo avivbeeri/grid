@@ -218,6 +218,28 @@ class ScrollSystem is GameSystem {
   }
 }
 
+class RenderComponent is Component {
+  construct new(id) {
+    super(id)
+    setRenderFunction(Fn.new {|entity|
+
+    })
+  }
+
+  construct new(id, fn) {
+    super(id)
+    setRenderFunction(fn)
+  }
+
+  setRenderFunction(fn) {
+    _fn = fn
+  }
+
+  render() {
+    _fn.call(this)
+  }
+}
+
 class RectComponent is Component {
   construct new(id) {
     super(id)
@@ -254,7 +276,7 @@ class RectComponent is Component {
 
 class RenderSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, RectComponent])
+    super(world, [PositionComponent, RenderComponent])
   }
   update() {
     Canvas.cls()
@@ -277,7 +299,6 @@ class RenderSystem is GameSystem {
       var position = entity.getComponent(PositionComponent)
       var rect = entity.getComponent(RectComponent)
       Canvas.rectfill(position.x, position.y, rect.width, rect.height, rect.color)
-
     }
   }
 }
@@ -305,22 +326,29 @@ class MainGame {
 
     // Create player
     __player = __world.newEntity()
-    __player.addComponents([PositionComponent, RectComponent, PlayerControlComponent, PhysicsComponent])
-    System.print(Game.gameData)
+    __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
     __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
+    var playerRender =
+    __player.setComponent(RenderComponent.new(__player.id, Fn.new({|entity|
+      var position = entity.getComponent(PositionComponent)
+      var rect = entity.getComponent(RectComponent)
+      Canvas.rectfill(position.x, position.y, 16, 32, Color.blue)
+    })))
 
-    for (y in 0...(Canvas.height/8)) {
-      for (x in 0...(Canvas.width/8)) {
+
+    // Create tilemap
+    var tileSize = 8
+    for (y in 0...(Canvas.height/ tileSize)) {
+      for (x in 0...(Canvas.width/ tileSize)) {
         var tile = __world.newEntity()
         tile.addComponents([PositionComponent, RectComponent, TileComponent])
-        tile.setComponent(RectComponent.new(__player.id, Color.white, 8, 8, -1))
-        tile.getComponent(PositionComponent).x = x * 8
-        tile.getComponent(PositionComponent).y = y * 8
+        tile.setComponent(RectComponent.new(__player.id, Color.black, tileSize, tileSize, -1))
+        tile.getComponent(PositionComponent).x = x * tileSize
+        tile.getComponent(PositionComponent).y = y * tileSize
       }
     }
-    // Create player
 
     // Enemy
     __enemy = __world.newEntity()
@@ -336,6 +364,7 @@ class MainGame {
 
   static draw(dt) {
     __world.render()
+    Canvas.ellipsefill( 20, 20, 70, 40, Color.green)
   }
 }
 
