@@ -1,14 +1,15 @@
 import "./ecs/component" for Component
+import "./ecs/events" for EventListener
 import "./util" for Utils
 
-class GameSystem {
-  construct init(world, requires) { 
+class GameSystem is EventListener {
+  construct init(world, requires) {
     for (componentType in requires) {
       if (!Component.isComponentType(componentType)) {
-        Fiber.abort("Requiring a non-component type %(componentType)") 
+        Fiber.abort("Requiring a non-component type %(componentType)")
       }
     }
-    _world = world 
+    _world = world
     _requires = requires
   }
   world { _world }
@@ -24,7 +25,7 @@ class GameSystem {
       }
       if (resultSize == _requires.count) {
         allowedEntities.add(entity)
-      } 
+      }
     }
     return allowedEntities
   }

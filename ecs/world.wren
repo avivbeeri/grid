@@ -2,6 +2,7 @@ import "./ecs/entity" for Entity
 import "./ecs/component" for Component
 import "./ecs/gamesystem" for GameSystem
 import "./util" for Utils
+import "./ecs/events" for EventBus
 
 class World {
   construct new() {
@@ -9,8 +10,10 @@ class World {
     _systems = []
     _renderSystems = []
     _componentManagers = {}
+    _eventBus = EventBus.new()
   }
   entities { _manager.entities }
+  bus { _eventBus }
 
   newEntity() {
     return _manager.new()
@@ -50,13 +53,13 @@ class World {
           addComponentToEntity(entity, componentType)
         }
       }
-    } 
+    }
   }
 
   addComponentToEntity(entity, componentType) {
     if (entity is Entity && _componentManagers.containsKey(componentType)) {
       _componentManagers[componentType].add(entity)
-    } 
+    }
   }
 
   entityHasComponent(entity, componentType) {
@@ -83,6 +86,7 @@ class World {
     for (system in _systems) {
       system.update()
     }
+    _eventBus.clear()
   }
 
   render() {
@@ -98,14 +102,14 @@ class EntityManager {
     _entities = {}
     _world = world
   }
-   
+
   new() {
-    var entity = Entity.new(_world, _nextId) 
+    var entity = Entity.new(_world, _nextId)
     _entities[entity.id] = entity
     _nextId = _nextId + 1
-    
+
     return entity
-  }  
+  }
 
   remove(entity) {
     return _entities.remove(entity.id)
@@ -116,14 +120,14 @@ class EntityManager {
 
 class ComponentManager {
   construct new(ComponentClass) {
-    _ComponentClass = ComponentClass  
+    _ComponentClass = ComponentClass
     _components = {}
   }
 
-  components { _components } 
+  components { _components }
   add(entity) {
     if (entity is Entity) {
-      _components[entity.id] = _ComponentClass.new(entity.id)  
+      _components[entity.id] = _ComponentClass.new(entity.id)
     }
   }
 
@@ -155,7 +159,7 @@ class ComponentManager {
 
   // Iterator protocol implementation
   iterate(i) {
-    return _components.keys.iterate(i)  
+    return _components.keys.iterate(i)
   }
 
   iteratorValue(key) {
