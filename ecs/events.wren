@@ -21,11 +21,6 @@ class EventListener {
 class EventBus {
   construct new() {
     _listenerMap = {}
-    clear()
-  }
-
-  clear() {
-    _events = []
   }
 
   publish(event) {

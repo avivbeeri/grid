@@ -85,8 +85,8 @@ class World {
   update() {
     for (system in _systems) {
       system.update()
+      system.clearEvents()
     }
-    _eventBus.clear()
   }
 
   render() {
