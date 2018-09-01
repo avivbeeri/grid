@@ -79,14 +79,16 @@ class MainGame {
     // World system setup
     __world = World.new()
     __world.addSystem(PlayerControlSystem)
+    __world.addSystem(EnemyAISystem)
     __world.addSystem(PhysicsSystem)
     __world.addSystem(CollisionSystem)
-    __world.addSystem(EnemyAISystem)
     __world.addSystem(TestEventSystem)
     __world.addRenderSystem(RenderSystem)
 
     // Create player
     __player = __world.newEntity()
+    __world.setEntityTag("player", __player)
+
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
@@ -108,7 +110,7 @@ class MainGame {
 
     // Enemy
     __enemy = __world.newEntity()
-    __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent])
+    __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
     __enemy.setComponent(RenderComponent.new(__enemy.id, [Rect.new(Yellow, 8,8)]))
     __enemy.getComponent(PositionComponent).y = 20
     __enemy.getComponent(ColliderComponent).box = AABB.new(0, 0, tileSize, tileSize)

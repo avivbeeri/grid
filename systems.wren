@@ -118,15 +118,22 @@ class EnemyAISystem is GameSystem {
         }
       }
       var position = entity.getComponent(PositionComponent)
+      var physics = entity.getComponent(PhysicsComponent)
       var ai = entity.getComponent(EnemyAIComponent)
       if (!collided) {
+        physics.acceleration.x = 0
+        physics.acceleration.y = 0
+        physics.velocity.x = 0
+        physics.velocity.y = 0
+        var velocity = physics.velocity
+
         if (ai.mode == "horizontal") {
-          position.x = position.x + ai.dir
+          velocity.x = ai.dir
           if ((ai.dir > 0 && position.x >= Canvas.width-8) || (ai.dir < 1 && position.x <= 0)) {
             ai.mode = "vertical"
           }
         } else if (ai.mode == "vertical") {
-          position.y = position.y + 1
+          velocity.y = 1
           ai.t = ai.t + 1
           if (ai.t >= 32) {
             ai.mode = "horizontal"
@@ -139,13 +146,26 @@ class EnemyAISystem is GameSystem {
             ai.mode = "reverse"
           }
         } else if (ai.mode == "reverse") {
-          position.y = position.y - 1
+          velocity.y = -1
           if (position.y <= 0) {
             ai.mode = "horizontal"
           }
         }
       } else {
+          // get player entity
+          var player = world.getEntityByTag("player")
+          var playerPosition = player.getComponent(PositionComponent).point
 
+          var x = position.x - playerPosition.x
+          // if (x.abs < 0.4) { x = 0 }
+          if (x < 0) {
+            x = -1
+          } else if (x > 0) {
+            x = 1
+          } else {
+            x = 0
+          }
+          physics.acceleration.x = x / 8
       }
       var renderableComponent = entity.getComponent(RenderComponent)
       for (obj in renderableComponent.renderables) {
@@ -174,13 +194,16 @@ class PlayerControlSystem is GameSystem {
       var y = 0
 
       if (Keyboard.isKeyDown("left")) {
-        x = -1
-      } else if (Keyboard.isKeyDown("right")) {
-        x = 1
-      } else if (Keyboard.isKeyDown("up")) {
-        y = -1
-      } else if (Keyboard.isKeyDown("down")) {
-        y = 1
+        x = x - 1
+      }
+      if (Keyboard.isKeyDown("right")) {
+        x = x + 1
+      }
+      if (Keyboard.isKeyDown("up")) {
+        y = y - 1
+      }
+      if (Keyboard.isKeyDown("down")) {
+        y = y + 1
       }
       if (Keyboard.isKeyDown("space")) {
       }
