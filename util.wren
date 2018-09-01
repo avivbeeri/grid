@@ -1,5 +1,30 @@
 import "graphics" for Point
 
+class AABB {
+  construct new(x, y, w, h) {
+    _pos = Point.new(x, y)
+    _size = Point.new(w, h)
+  }
+  construct new(pos, size) {
+    _pos = pos
+    _size = size
+  }
+
+  pos { _pos }
+  size { _size }
+
+  static isColliding(pos1, aabb1, pos2, aabb2) {
+
+   var box1 = AABB.new(aabb1.pos + pos1, aabb1.size)
+   var box2 = AABB.new(aabb2.pos + pos2, aabb2.size)
+   return box1.pos.x < box2.pos.x + box2.size.x &&
+     box1.pos.x + box1.size.x > box2.pos.x &&
+     box1.pos.y < box2.pos.y + box2.size.y &&
+     box1.pos.y + box1.size.y > box2.pos.y
+  }
+
+}
+
 // Consider moving Box to "graphics"
 class Box {
   construct new(x1, y1, x2, y2) {
@@ -23,8 +48,8 @@ class Box {
 }
 
 class Utils {
-  
-  /* 
+
+  /*
      Returns true if the given ClassObject is a descendant of
      superClass but is not equal to superClass
    */
@@ -42,5 +67,5 @@ class Utils {
     }
     return false
   }
- 
+
 }
