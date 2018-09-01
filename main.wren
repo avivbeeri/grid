@@ -200,37 +200,61 @@ class CollisionSystem is GameSystem {
 class EnemyAISystem is GameSystem {
   construct init(world) {
     super(world, [PositionComponent, EnemyAIComponent])
+    world.bus.subscribe(this, CollisionEvent)
   }
 
   update() {
+
     for (entity in entities) {
-      var position = entity.getComponent(PositionComponent)
-      var ai = entity.getComponent(EnemyAIComponent)
-      if (ai.mode == "horizontal") {
-        position.x = position.x + ai.dir
-        if ((ai.dir > 0 && position.x >= Canvas.width-8) || (ai.dir < 1 && position.x <= 0)) {
-          ai.mode = "vertical"
-        }
-      } else if (ai.mode == "vertical") {
-        position.y = position.y + 1
-        ai.t = ai.t + 1
-        if (ai.t >= 32) {
-          ai.mode = "horizontal"
-          ai.dir = -ai.dir
-          ai.t = 0
-        }
-        if (position.y >= Canvas.height - 8) {
-          ai.dir = -ai.dir
-          ai.t = 0
-          ai.mode = "reverse"
-        }
-      } else if (ai.mode == "reverse") {
-        position.y = position.y - 1
-        if (position.y <= 0) {
-          ai.mode = "horizontal"
+      var collided = false
+      for (event in events) {
+        if (event.e1 == entity.id || event.e2 == entity.id) {
+          collided = true
         }
       }
+      var position = entity.getComponent(PositionComponent)
+      var ai = entity.getComponent(EnemyAIComponent)
+      if (!collided) {
+        if (ai.mode == "horizontal") {
+          position.x = position.x + ai.dir
+          if ((ai.dir > 0 && position.x >= Canvas.width-8) || (ai.dir < 1 && position.x <= 0)) {
+            ai.mode = "vertical"
+          }
+        } else if (ai.mode == "vertical") {
+          position.y = position.y + 1
+          ai.t = ai.t + 1
+          if (ai.t >= 32) {
+            ai.mode = "horizontal"
+            ai.dir = -ai.dir
+            ai.t = 0
+          }
+          if (position.y >= Canvas.height - 8) {
+            ai.dir = -ai.dir
+            ai.t = 0
+            ai.mode = "reverse"
+          }
+        } else if (ai.mode == "reverse") {
+          position.y = position.y - 1
+          if (position.y <= 0) {
+            ai.mode = "horizontal"
+          }
+        }
+      } else {
+
+      }
+      var renderableComponent = entity.getComponent(RenderComponent)
+      for (obj in renderableComponent.renderables) {
+        if (obj is Rect) {
+          if (collided) {
+          obj.setValues(Color.red, obj.width, obj.height)
+          } else {
+          obj.setValues(Yellow, obj.width, obj.height)
+          }
+        }
+
+      }
     }
+    clearEvents()
   }
 }
 
@@ -379,10 +403,10 @@ class MainGame {
     // World system setup
     __world = World.new()
     __world.addSystem(PlayerControlSystem)
-    __world.addSystem(EnemyAISystem)
     // __world.addSystem(TileSystem)
     __world.addSystem(PhysicsSystem)
     __world.addSystem(CollisionSystem)
+    __world.addSystem(EnemyAISystem)
     __world.addSystem(TestEventSystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
