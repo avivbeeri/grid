@@ -43,7 +43,10 @@ class World {
   }
 
   addComponentManager(componentType) {
-    _componentManagers[componentType] = ComponentManager.new(componentType)
+    componentType = Component.getSubtype(componentType)
+    if (!_componentManagers.containsKey(componentType)) {
+      _componentManagers[componentType] = ComponentManager.new(componentType)
+    }
   }
 
   addComponentsToEntity(entity, componentTypes) {
@@ -57,28 +60,37 @@ class World {
   }
 
   addComponentToEntity(entity, componentType) {
-    if (entity is Entity && _componentManagers.containsKey(componentType)) {
+    if (entity is Entity) {
+      addComponentManager(componentType)
       _componentManagers[componentType].add(entity)
     }
   }
 
   entityHasComponent(entity, componentType) {
+    // PRE: assumes a manager exists
     return _componentManagers[componentType].has(entity)
   }
 
   getComponentFromEntity(entity, componentType) {
+    componentType = Component.getSubtype(componentType)
+    // PRE: assumes a manager exists
     return _componentManagers[componentType][entity]
   }
 
   removeComponentFromEntity(entity, component) {
+    // PRE: assumes a manager exists
     if (component is Class && Component.isComponentType(component)) {
+      componentType = Component.getSubtype(componentType)
       return _componentManagers[component].remove(entity)
     } else if (component is Component) {
-      return _componentManagers[component.type].remove(entity)
+      var componentType = Component.getSubtype(component.type)
+      return _componentManagers[componentType].remove(entity)
     }
   }
 
   setComponentOfEntity(entity, component) {
+    // PRE: assumes a manager exists
+    addComponentManager(component.type)
     _componentManagers[component.type][entity] = component
   }
 

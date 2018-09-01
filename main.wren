@@ -79,26 +79,17 @@ class MainGame {
     // World system setup
     __world = World.new()
     __world.addSystem(PlayerControlSystem)
-    // __world.addSystem(TileSystem)
     __world.addSystem(PhysicsSystem)
     __world.addSystem(CollisionSystem)
     __world.addSystem(EnemyAISystem)
     __world.addSystem(TestEventSystem)
     __world.addRenderSystem(RenderSystem)
-    __world.addComponentManager(PositionComponent)
-    __world.addComponentManager(ColliderComponent)
-    __world.addComponentManager(EnemyAIComponent)
-    __world.addComponentManager(PlayerControlComponent)
-    __world.addComponentManager(PhysicsComponent)
-    __world.addComponentManager(RenderComponent)
-    __world.addComponentManager(TileComponent)
 
     // Create player
     __player = __world.newEntity()
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
-    // __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
     __player.setComponent(RenderComponent.new(__player.id, [ Rect.new(Color.blue, 16, 32)]))
     __player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 32)
 
@@ -130,7 +121,7 @@ class MainGame {
 
   static draw(dt) {
     __world.render()
-    Canvas.ellipsefill( 20, 20, 70, 40, Color.green)
+    // Canvas.ellipsefill( 20, 20, 70, 40, Color.green)
   }
 }
 

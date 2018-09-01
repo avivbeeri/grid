@@ -4,13 +4,14 @@ import "./util" for Utils
 
 class GameSystem is EventListener {
   construct init(world, requires) {
+    _world = world
+    _requires = requires
     for (componentType in requires) {
       if (!Component.isComponentType(componentType)) {
         Fiber.abort("Requiring a non-component type %(componentType)")
       }
+      world.addComponentManager(componentType)
     }
-    _world = world
-    _requires = requires
   }
   world { _world }
   update() {}
