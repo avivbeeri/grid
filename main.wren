@@ -8,12 +8,13 @@ import "./toml/toml-map-builder" for TomlMapBuilder
 
 
 import "./gameover" for GameOverState
-import "./util" for Box
+import "./util" for Box, AABB
 
 import "./ecs/entity" for Entity
 import "./ecs/component" for Component
 import "./ecs/gamesystem" for GameSystem
 import "./ecs/world" for World
+import "./ecs/events" for Event, EventListener
 
 var Yellow = Color.rgb(255, 162, 00, 00)
 
@@ -30,7 +31,7 @@ class Game {
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
      text = text + "position.x = 20 \n"
-     text = text + "position.y = 20 \n"
+     text = text + "position.y = 60 \n"
 
     var document = Toml.run(text)
     __gameData = TomlMapBuilder.new(document).build()
@@ -61,6 +62,8 @@ class PositionComponent is Component {
     _position = Point.new(x, y)
   }
 
+  point { _position }
+
   x { _position.x }
   y { _position.y }
   x=(i) { _position = Point.new(i, _position.y)}
@@ -86,6 +89,15 @@ class TileComponent is Component {
   construct new(id) {
     super(id)
   }
+}
+
+class ColliderComponent is Component {
+  construct new(id) {
+    super(id)
+  }
+
+  box { _box }
+  box=(b) { _box = b }
 }
 
 class EnemyAIComponent is Component {
@@ -132,6 +144,55 @@ class PhysicsSystem is GameSystem {
 
       position.x = position.x + velocity.x
       position.y = position.y + velocity.y
+    }
+  }
+}
+
+class TestEventSystem is GameSystem {
+  construct init(world) {
+    super(world, [])
+    world.bus.subscribe(this, CollisionEvent)
+  }
+
+  update() {
+    for (event in events) {
+      System.print("%(event.e1) -> %(event.e2)")
+    }
+    clearEvents()
+  }
+}
+
+class CollisionEvent is Event {
+  construct new(e1, e2) {
+    _e1 = e1
+    _e2 = e2
+  }
+  e1 { _e1 }
+  e2 { _e2 }
+}
+
+class CollisionSystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, ColliderComponent])
+  }
+
+  update() {
+    var collisions = {}
+    for (entity in entities) {
+      var pos1 = entity.getComponent(PositionComponent)
+      var col1 = entity.getComponent(ColliderComponent)
+
+      for (nextEntity in entities) {
+        if (nextEntity.id != entity.id) {
+          var pos2 = nextEntity.getComponent(PositionComponent)
+          var col2 = nextEntity.getComponent(ColliderComponent)
+          if (AABB.isColliding(pos1.point, col1.box, pos2.point, col2.box)) {
+              collisions[entity.id] = nextEntity.id
+              world.bus.publish(CollisionEvent.new(entity.id, nextEntity.id))
+          }
+          // Check overlap
+        }
+      }
     }
   }
 }
@@ -321,8 +382,11 @@ class MainGame {
     __world.addSystem(EnemyAISystem)
     // __world.addSystem(TileSystem)
     __world.addSystem(PhysicsSystem)
+    __world.addSystem(CollisionSystem)
+    __world.addSystem(TestEventSystem)
     __world.addRenderSystem(RenderSystem)
     __world.addComponentManager(PositionComponent)
+    __world.addComponentManager(ColliderComponent)
     __world.addComponentManager(EnemyAIComponent)
     __world.addComponentManager(PlayerControlComponent)
     __world.addComponentManager(PhysicsComponent)
@@ -331,11 +395,12 @@ class MainGame {
 
     // Create player
     __player = __world.newEntity()
-    __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent])
+    __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
     // __player.setComponent(RectComponent.new(__player.id, Color.blue, 16, 32))
     __player.setComponent(RenderComponent.new(__player.id, [ Rect.new(Color.blue, 16, 32)]))
+    __player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 32)
 
 
     // Create tilemap
@@ -352,9 +417,10 @@ class MainGame {
 
     // Enemy
     __enemy = __world.newEntity()
-    __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent])
+    __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent])
     __enemy.setComponent(RenderComponent.new(__enemy.id, [Rect.new(Yellow, 8,8)]))
-    __enemy.getComponent(PositionComponent).y = 50
+    __enemy.getComponent(PositionComponent).y = 20
+    __enemy.getComponent(ColliderComponent).box = AABB.new(0, 0, tileSize, tileSize)
   }
 
   static update() {
