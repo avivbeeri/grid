@@ -19,6 +19,17 @@ class World {
     return _manager.new()
   }
 
+  setEntityTag(tag, entity) {
+    _manager.tag(tag, entity)
+  }
+
+  getEntityByTag(tag) {
+    return _manager[tag]
+  }
+  getEntityById(tag) {
+    return _manager[tag]
+  }
+
   removeEntity(entity) {
     for (componentManager in _componentManagers) {
       componentManager.remove(entity)
@@ -112,6 +123,7 @@ class EntityManager {
   construct init(world) {
     _nextId = 1
     _entities = {}
+    _tags = {}
     _world = world
   }
 
@@ -125,6 +137,19 @@ class EntityManager {
 
   remove(entity) {
     return _entities.remove(entity.id)
+  }
+
+  tag(name, entity) {
+    _tags[name] = entity.id
+  }
+  [index] {
+    if (index is Num) {
+      return _entities[index]
+    } else if (index is String) {
+      return _entities[_tags[index]]
+    } else {
+      Fiber.abort("Attempted to get entity with invalid index %(index)")
+    }
   }
 
   entities { _entities.values.toList }
