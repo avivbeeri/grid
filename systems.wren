@@ -43,6 +43,10 @@ class PhysicsSystem is GameSystem {
       var acceleration = physics.acceleration
       var velocity = physics.velocity
       var position = entity.getComponent(PositionComponent)
+      physics.pastPosition = position.point
+
+      velocity.x = velocity.x + acceleration.x
+      velocity.y = velocity.y + acceleration.y
 
       position.x = position.x + velocity.x
       position.y = position.y + velocity.y
@@ -58,9 +62,8 @@ class TestEventSystem is GameSystem {
 
   update() {
     for (event in events) {
-      System.print("%(event.e1) -> %(event.e2)")
+      // System.print("%(event.e1) -> %(event.e2)")
     }
-    clearEvents()
   }
 }
 
@@ -156,7 +159,6 @@ class EnemyAISystem is GameSystem {
 
       }
     }
-    clearEvents()
   }
 }
 

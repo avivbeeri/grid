@@ -24,9 +24,12 @@ class PhysicsComponent is Component {
     super(id)
     _velocity = Point.new(0, 0)
     _acceleration = Point.new(0, 0)
+    _pastPosition = Point.new(0, 0)
   }
   velocity { _velocity }
   acceleration { _acceleration }
+  pastPosition { _pastPosition }
+  pastPosition=(p) { _pastPosition = p }
 }
 
 class PlayerControlComponent is Component {
