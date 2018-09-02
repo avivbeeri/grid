@@ -156,7 +156,7 @@ class EnemyAISystem is GameSystem {
           var player = world.getEntityByTag("player")
           var playerPosition = player.getComponent(PositionComponent).point
 
-          var x = position.x - playerPosition.x
+          var x = (position.x+4) - (playerPosition.x + 8)
           // if (x.abs < 0.4) { x = 0 }
           if (x < 0) {
             x = -1
@@ -165,7 +165,7 @@ class EnemyAISystem is GameSystem {
           } else {
             x = 0
           }
-          physics.acceleration.x = x / 8
+          physics.velocity.x = -x / 2
       }
       var renderableComponent = entity.getComponent(RenderComponent)
       for (obj in renderableComponent.renderables) {
