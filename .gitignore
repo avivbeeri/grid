@@ -6,3 +6,4 @@ src/util/embed
 src/engine/*.inc
 *.swp
 
+res/ase
