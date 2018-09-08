@@ -16,7 +16,7 @@ import "./components" for
   Renderable,
   Rect
 
-var Yellow = Color.rgb(255, 162, 00, 00)
+var Yellow = Color.rgb(255, 162, 00, 255)
 /*
  DEPRECIATED
 class TileSystem is GameSystem {
@@ -190,20 +190,25 @@ class PlayerControlSystem is GameSystem {
   update() {
     for (entity in entities) {
       var velocity = entity.getComponent(PhysicsComponent).velocity
+      var sprite = entity.getComponent(RenderComponent).renderables[0]
       var x = 0
       var y = 0
 
       if (Keyboard.isKeyDown("left")) {
         x = x - 1
+        sprite.x = 48
       }
       if (Keyboard.isKeyDown("right")) {
         x = x + 1
+        sprite.x = 16
       }
       if (Keyboard.isKeyDown("up")) {
         y = y - 1
+        sprite.x = 32
       }
       if (Keyboard.isKeyDown("down")) {
         y = y + 1
+        sprite.x = 0
       }
       if (Keyboard.isKeyDown("space")) {
       }
@@ -234,7 +239,7 @@ class RenderSystem is GameSystem {
     super(world, [PositionComponent, RenderComponent])
   }
   update() {
-    Canvas.cls()
+    Canvas.cls(Color.black)
     var sortedEntities = entities[0..-1]
 
     // Insertion sort the entities

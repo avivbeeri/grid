@@ -29,10 +29,11 @@ import "./components" for
   EnemyAIComponent,
   RenderComponent,
   Renderable,
-  Rect
+  Rect,
+  Sprite
 
 
-var Yellow = Color.rgb(255, 162, 00, 00)
+var Yellow = Color.rgb(255, 162, 00, 255)
 
 // -------------------------
 // ------- GAME CODE -------
@@ -75,6 +76,7 @@ class MainGame {
   static init() {
     __next = null
     __t = 0
+    __ghostStanding = ImageData.loadFromFile("res/ghost-standing.png")
 
     // World system setup
     __world = World.new()
@@ -92,8 +94,9 @@ class MainGame {
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
-    __player.setComponent(RenderComponent.new(__player.id, [ Rect.new(Color.blue, 16, 32)]))
+    __player.setComponent(RenderComponent.new(__player.id, [ Sprite.new(__ghostStanding) ]))
     __player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 32)
+    __player.getComponent(RenderComponent).renderables[0].setSrc(0,0,16,32)
 
 
     // Create tilemap
@@ -124,6 +127,7 @@ class MainGame {
   static draw(dt) {
     __world.render()
     // Canvas.ellipsefill( 20, 20, 70, 40, Color.green)
+    // __ghostStanding.drawArea(48,0,16,32,0,0)
   }
 }
 
