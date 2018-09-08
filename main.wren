@@ -5,6 +5,7 @@ import "random" for Random
 
 import "./ecs/world" for World
 import "./util" for AABB
+import "./renderables" for Rect, Sprite
 
 import "./toml/toml" for Toml
 import "./toml/toml-map-builder" for TomlMapBuilder
@@ -27,10 +28,7 @@ import "./components" for
   TileComponent,
   ColliderComponent,
   EnemyAIComponent,
-  RenderComponent,
-  Renderable,
-  Rect,
-  Sprite
+  RenderComponent
 
 
 var Yellow = Color.rgb(255, 162, 00, 255)

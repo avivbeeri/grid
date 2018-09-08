@@ -1,6 +1,7 @@
 import "input" for Keyboard
 import "graphics" for Canvas, Color, Point
 import "./util" for AABB
+import "./renderables" for Rect, Sprite
 
 import "./ecs/gamesystem" for GameSystem
 import "./ecs/events" for Event, EventListener
@@ -12,9 +13,7 @@ import "./components" for
   TileComponent,
   ColliderComponent,
   EnemyAIComponent,
-  RenderComponent,
-  Renderable,
-  Rect
+  RenderComponent
 
 var Yellow = Color.rgb(255, 162, 00, 255)
 /*
