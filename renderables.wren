@@ -2,7 +2,9 @@ import "graphics" for Canvas, Color
 
 class Renderable {
   render(position) {}
+  children { [] }
 }
+
 
 class Sprite is Renderable {
   construct new(sprite) {
@@ -25,6 +27,9 @@ class Sprite is Renderable {
   }
 
   x=(v) { _x = v }
+  x { _x }
+
+  image { _image }
 }
 
 class Rect is Renderable {
@@ -53,4 +58,23 @@ class Rect is Renderable {
   color { _color }
   width { _width }
   height { _height }
+}
+
+class Animation is Sprite {
+  construct new(spritesheet, size, speed) {
+    super(spritesheet)
+    _size = size
+    setSrc(0, 0, size.x, size.y)
+    _t = 0
+    _frameLength = speed
+  }
+
+  render(position) {
+    super.render(position)
+    _t = _t + 1
+    if (_t > _frameLength) {
+      x = (x + _size.x) % image.width
+      _t = 0
+    }
+  }
 }

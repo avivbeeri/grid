@@ -72,28 +72,25 @@ class EnemyAIComponent is Component {
 class RenderComponent is Component {
   construct new(id) {
     super(id)
-    setValues([], 0)
+    setValues(null, 0)
   }
 
-  construct new(id, renderables) {
+  construct new(id, renderable) {
     super(id)
-    setValues(renderables, 0)
+    setValues(renderable, 0)
   }
 
-  construct new(id, renderables, z) {
+  construct new(id, renderable, z) {
     super(id)
-    setValues(renderables, z)
+    setValues(renderable, z)
   }
 
-  setValues(renderables, z) {
-    if (renderables.where{|r| !(r is Renderable)}.count > 0) {
-      Fiber.abort("Tried to pass non-renderables")
-    }
-    _renderables = renderables
+  setValues(renderable, z) {
+    _renderable = renderable
     _z = z
   }
 
-  renderables { _renderables }
+  renderable { _renderable }
   z { _z }
 }
 

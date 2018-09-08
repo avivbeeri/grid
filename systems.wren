@@ -166,16 +166,13 @@ class EnemyAISystem is GameSystem {
           }
           physics.velocity.x = -x / 2
       }
-      var renderableComponent = entity.getComponent(RenderComponent)
-      for (obj in renderableComponent.renderables) {
-        if (obj is Rect) {
-          if (collided) {
-          obj.setValues(Color.red, obj.width, obj.height)
-          } else {
-          obj.setValues(Yellow, obj.width, obj.height)
-          }
+      var obj = entity.getComponent(RenderComponent).renderable
+      if (obj is Rect) {
+        if (collided) {
+        obj.setValues(Color.red, obj.width, obj.height)
+        } else {
+        obj.setValues(Yellow, obj.width, obj.height)
         }
-
       }
     }
   }
@@ -189,26 +186,31 @@ class PlayerControlSystem is GameSystem {
   update() {
     for (entity in entities) {
       var velocity = entity.getComponent(PhysicsComponent).velocity
-      var sprite = entity.getComponent(RenderComponent).renderables[0]
+      var sprite = entity.getComponent(RenderComponent).renderable
       var x = 0
       var y = 0
 
+      var stand = 0
+
       if (Keyboard.isKeyDown("left")) {
         x = x - 1
-        sprite.x = 48
+        stand = 48
       }
       if (Keyboard.isKeyDown("right")) {
         x = x + 1
-        sprite.x = 16
+        stand = 16
       }
       if (Keyboard.isKeyDown("up")) {
         y = y - 1
-        sprite.x = 32
+        stand = 32
       }
       if (Keyboard.isKeyDown("down")) {
         y = y + 1
-        sprite.x = 0
+        stand = 0
       }
+
+      // sprite.x = stand
+
       if (Keyboard.isKeyDown("space")) {
       }
 
@@ -256,9 +258,10 @@ class RenderSystem is GameSystem {
 
     for (entity in sortedEntities) {
       var position = entity.getComponent(PositionComponent)
-      var render = entity.getComponent(RenderComponent)
-      for (obj in render.renderables) {
-        obj.render(position)
+      var renderable = entity.getComponent(RenderComponent).renderable
+
+      if (renderable) {
+        renderable.render(position)
       }
     }
   }

@@ -5,7 +5,7 @@ import "random" for Random
 
 import "./ecs/world" for World
 import "./util" for AABB
-import "./renderables" for Rect, Sprite
+import "./renderables" for Rect, Sprite, Animation
 
 import "./toml/toml" for Toml
 import "./toml/toml-map-builder" for TomlMapBuilder
@@ -75,6 +75,10 @@ class MainGame {
     __next = null
     __t = 0
     __ghostStanding = ImageData.loadFromFile("res/ghost-standing.png")
+    __ghostRunningDown = ImageData.loadFromFile("res/ghost-running-down.png")
+    __ghostRunningUp = ImageData.loadFromFile("res/ghost-running-up.png")
+    __ghostRunningLeft = ImageData.loadFromFile("res/ghost-running-left.png")
+    __ghostRunningRight = ImageData.loadFromFile("res/ghost-running-right.png")
 
     // World system setup
     __world = World.new()
@@ -92,9 +96,9 @@ class MainGame {
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
-    __player.setComponent(RenderComponent.new(__player.id, [ Sprite.new(__ghostStanding) ]))
+    __player.setComponent(RenderComponent.new(__player.id, Animation.new(__ghostRunningUp, Point.new(16,32), 5)))
     __player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 32)
-    __player.getComponent(RenderComponent).renderables[0].setSrc(0,0,16,32)
+    // __player.getComponent(RenderComponent).renderables[0]
 
 
     // Create tilemap
@@ -103,7 +107,7 @@ class MainGame {
       for (x in 0...(Canvas.width/ tileSize)) {
         var tile = __world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
-        tile.setComponent(RenderComponent.new(__player.id, [Rect.new(Color.darkgray, tileSize, tileSize)], -1))
+        tile.setComponent(RenderComponent.new(__player.id, Rect.new(Color.darkgray, tileSize, tileSize), -1))
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
       }
@@ -112,7 +116,7 @@ class MainGame {
     // Enemy
     __enemy = __world.newEntity()
     __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
-    __enemy.setComponent(RenderComponent.new(__enemy.id, [Rect.new(Yellow, 8,8)]))
+    __enemy.setComponent(RenderComponent.new(__enemy.id, Rect.new(Yellow, 8,8)))
     __enemy.getComponent(PositionComponent).y = 20
     __enemy.getComponent(ColliderComponent).box = AABB.new(0, 0, tileSize, tileSize)
   }
