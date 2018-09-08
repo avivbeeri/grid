@@ -191,22 +191,27 @@ class PlayerControlSystem is GameSystem {
       var y = 0
 
       var stand = 0
+      sprite.state = "standing"
 
       if (Keyboard.isKeyDown("left")) {
         x = x - 1
         stand = 48
+        sprite.state = "running-left"
       }
       if (Keyboard.isKeyDown("right")) {
         x = x + 1
         stand = 16
+        sprite.state = "running-right"
       }
       if (Keyboard.isKeyDown("up")) {
         y = y - 1
         stand = 32
+        sprite.state = "running-up"
       }
       if (Keyboard.isKeyDown("down")) {
         y = y + 1
         stand = 0
+        sprite.state = "running-down"
       }
 
       // sprite.x = stand

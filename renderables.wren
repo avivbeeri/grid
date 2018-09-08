@@ -9,10 +9,12 @@ class Renderable {
 class Sprite is Renderable {
   construct new(sprite) {
     _image = sprite
-    _x = 0
-    _y = 0
-    _w = _image.width
-    _h = _image.height
+    setSrc(0, 0, _image.width, _image.height)
+  }
+
+  construct new(sprite, size) {
+    _image = sprite
+    setSrc(0, 0, size.x, size.y)
   }
 
   render(position) {
@@ -76,5 +78,18 @@ class Animation is Sprite {
       x = (x + _size.x) % image.width
       _t = 0
     }
+  }
+}
+
+class SpriteGroup is Renderable {
+  construct new(state, spriteMap) {
+    _state = state
+    _map = spriteMap
+  }
+
+  state=(v) { _state = v }
+
+  render(position) {
+    _map[_state].render(position)
   }
 }

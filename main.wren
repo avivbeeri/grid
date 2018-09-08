@@ -5,7 +5,7 @@ import "random" for Random
 
 import "./ecs/world" for World
 import "./util" for AABB
-import "./renderables" for Rect, Sprite, Animation
+import "./renderables" for Rect, Sprite, Animation, SpriteGroup
 
 import "./toml/toml" for Toml
 import "./toml/toml-map-builder" for TomlMapBuilder
@@ -96,7 +96,13 @@ class MainGame {
     __player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     __player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     __player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
-    __player.setComponent(RenderComponent.new(__player.id, Animation.new(__ghostRunningUp, Point.new(16,32), 5)))
+    __player.setComponent(RenderComponent.new(__player.id, SpriteGroup.new("standing", {
+      "standing": Sprite.new(__ghostStanding, Point.new(16,32)),
+      "running-left": Animation.new(__ghostRunningLeft, Point.new(16,32), 5),
+      "running-right": Animation.new(__ghostRunningRight, Point.new(16,32), 5),
+      "running-up": Animation.new(__ghostRunningUp, Point.new(16,32), 5),
+      "running-down": Animation.new(__ghostRunningDown, Point.new(16,32), 5)
+    })))
     __player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 32)
     // __player.getComponent(RenderComponent).renderables[0]
 
