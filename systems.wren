@@ -166,9 +166,9 @@ class EnemyAISystem is GameSystem {
           physics.velocity.x = -x / 2
       }
       if (collided) {
-    entity.getComponent(RenderComponent).renderable.state = "active"
+    entity.getComponent(RenderComponent).renderable.children[0].state = "active"
       } else {
-    entity.getComponent(RenderComponent).renderable.state = "normal"
+    entity.getComponent(RenderComponent).renderable.children[0].state = "normal"
       }
     }
   }

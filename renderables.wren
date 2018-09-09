@@ -37,6 +37,20 @@ class Sprite is Renderable {
   image { _image }
 }
 
+class Ellipse is Renderable {
+  construct new(color, a, b) {
+    _color = color
+    _a = a
+    _b = b
+  }
+
+  render(position) {
+    var out = position + offset
+    Canvas.ellipsefill(out.x, out.y, out.x+_a, out.y+_b, _color)
+  }
+
+}
+
 class Rect is Renderable {
   construct new() {
     setValues(Color.white, 5, 5)
@@ -87,6 +101,20 @@ class Animation is Sprite {
 }
 
 class SpriteGroup is Renderable {
+  construct new(renderables) {
+    _list = renderables[0..-1]
+  }
+
+  render(position) {
+    for (r in _list) {
+      r.render(position + offset)
+    }
+  }
+
+  children { _list }
+}
+
+class SpriteMap is Renderable {
   construct new(state, spriteMap) {
     _state = state
     _map = spriteMap
@@ -95,7 +123,6 @@ class SpriteGroup is Renderable {
   state=(v) { _state = v }
 
   render(position) {
-    var out = position + offset
-    _map[_state].render(out)
+    _map[_state].render(position + offset)
   }
 }
