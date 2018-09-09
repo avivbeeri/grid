@@ -19,6 +19,7 @@ import "./systems" for
   EnemyAISystem,
   PlayerControlSystem,
   ScrollSystem,
+  ColliderRenderSystem,
   RenderSystem
 
 import "./components" for
@@ -79,6 +80,8 @@ class MainGame {
     __ghostRunningUp = ImageData.loadFromFile("res/ghost-running-up.png")
     __ghostRunningLeft = ImageData.loadFromFile("res/ghost-running-left.png")
     __ghostRunningRight = ImageData.loadFromFile("res/ghost-running-right.png")
+    __droneSprite = ImageData.loadFromFile("res/drone.png")
+    __droneActiveSprite = ImageData.loadFromFile("res/drone-active.png")
 
     // World system setup
     __world = World.new()
@@ -88,6 +91,7 @@ class MainGame {
     __world.addSystem(CollisionSystem)
     __world.addSystem(TestEventSystem)
     __world.addRenderSystem(RenderSystem)
+    // __world.addRenderSystem(ColliderRenderSystem)
 
     // Create player
     __player = __world.newEntity()
@@ -122,9 +126,13 @@ class MainGame {
     // Enemy
     __enemy = __world.newEntity()
     __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
-    __enemy.setComponent(RenderComponent.new(__enemy.id, Rect.new(Yellow, 8,8)))
     __enemy.getComponent(PositionComponent).y = 20
-    __enemy.getComponent(ColliderComponent).box = AABB.new(0, 0, tileSize, tileSize)
+    __enemy.getComponent(ColliderComponent).box = AABB.new(-4, 10, tileSize*3, tileSize*3)
+    __enemy.setComponent(RenderComponent.new(__enemy.id, SpriteGroup.new("normal", {
+      "normal": Animation.new(__droneSprite, Point.new(16,16), 1),
+      "active": Animation.new(__droneActiveSprite, Point.new(16,16), 1),
+    })))
+    __enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
   }
 
   static update() {
@@ -134,8 +142,6 @@ class MainGame {
 
   static draw(dt) {
     __world.render()
-    // Canvas.ellipsefill( 20, 20, 70, 40, Color.green)
-    // __ghostStanding.drawArea(48,0,16,32,0,0)
   }
 }
 

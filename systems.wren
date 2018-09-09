@@ -128,7 +128,7 @@ class EnemyAISystem is GameSystem {
 
         if (ai.mode == "horizontal") {
           velocity.x = ai.dir
-          if ((ai.dir > 0 && position.x >= Canvas.width-8) || (ai.dir < 1 && position.x <= 0)) {
+          if ((ai.dir > 0 && position.x >= Canvas.width-16) || (ai.dir < 1 && position.x <= 0)) {
             ai.mode = "vertical"
           }
         } else if (ai.mode == "vertical") {
@@ -139,7 +139,7 @@ class EnemyAISystem is GameSystem {
             ai.dir = -ai.dir
             ai.t = 0
           }
-          if (position.y >= Canvas.height - 8) {
+          if (position.y >= Canvas.height - 16) {
             ai.dir = -ai.dir
             ai.t = 0
             ai.mode = "reverse"
@@ -155,8 +155,7 @@ class EnemyAISystem is GameSystem {
           var player = world.getEntityByTag("player")
           var playerPosition = player.getComponent(PositionComponent).point
 
-          var x = (position.x+4) - (playerPosition.x + 8)
-          // if (x.abs < 0.4) { x = 0 }
+          var x = (position.x+8) - (playerPosition.x + 8)
           if (x < 0) {
             x = -1
           } else if (x > 0) {
@@ -166,13 +165,10 @@ class EnemyAISystem is GameSystem {
           }
           physics.velocity.x = -x / 2
       }
-      var obj = entity.getComponent(RenderComponent).renderable
-      if (obj is Rect) {
-        if (collided) {
-        obj.setValues(Color.red, obj.width, obj.height)
-        } else {
-        obj.setValues(Yellow, obj.width, obj.height)
-        }
+      if (collided) {
+    entity.getComponent(RenderComponent).renderable.state = "active"
+      } else {
+    entity.getComponent(RenderComponent).renderable.state = "normal"
       }
     }
   }
@@ -214,8 +210,6 @@ class PlayerControlSystem is GameSystem {
         sprite.state = "running-down"
       }
 
-      // sprite.x = stand
-
       if (Keyboard.isKeyDown("space")) {
       }
 
@@ -234,6 +228,7 @@ class ScrollSystem is GameSystem {
       var position = entity.getComponent(PositionComponent)
       position.x = (position.x + 1) % Canvas.width
       if (position.x > Canvas.width/2) {
+
       }
     }
   }
@@ -262,7 +257,7 @@ class RenderSystem is GameSystem {
     }
 
     for (entity in sortedEntities) {
-      var position = entity.getComponent(PositionComponent)
+      var position = entity.getComponent(PositionComponent).point
       var renderable = entity.getComponent(RenderComponent).renderable
 
       if (renderable) {
@@ -270,4 +265,25 @@ class RenderSystem is GameSystem {
       }
     }
   }
+}
+
+
+class ColliderRenderSystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, ColliderComponent])
+  }
+
+  update() {
+    for (entity in entities) {
+      var position = entity.getComponent(PositionComponent).point
+      var collider = entity.getComponent(ColliderComponent).box
+
+      var start = position + collider.pos
+
+      Canvas.rectfill(start.x, start.y, collider.size.x, collider.size.y, Color.red)
+    }
+
+  }
+
+
 }

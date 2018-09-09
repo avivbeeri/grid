@@ -1,8 +1,10 @@
-import "graphics" for Canvas, Color
+import "graphics" for Canvas, Color, Point
 
 class Renderable {
   render(position) {}
   children { [] }
+  offset { _offset || Point.new(0,0) }
+  offset=(v) { _offset = v }
 }
 
 
@@ -18,7 +20,8 @@ class Sprite is Renderable {
   }
 
   render(position) {
-    _image.drawArea(_x, _y, _w, _h, position.x, position.y)
+    var out = position + offset
+    _image.drawArea(_x, _y, _w, _h, out.x, out.y)
   }
 
   setSrc(x, y, w, h) {
@@ -54,7 +57,8 @@ class Rect is Renderable {
   }
 
   render(position) {
-    Canvas.rectfill(position.x, position.y, width, height, color)
+    var out = position + offset
+    Canvas.rectfill(out.x, out.y, width, height, color)
   }
 
   color { _color }
@@ -72,7 +76,8 @@ class Animation is Sprite {
   }
 
   render(position) {
-    super.render(position)
+    var out = position + offset
+    super.render(out)
     _t = _t + 1
     if (_t > _frameLength) {
       x = (x + _size.x) % image.width
@@ -90,6 +95,7 @@ class SpriteGroup is Renderable {
   state=(v) { _state = v }
 
   render(position) {
-    _map[_state].render(position)
+    var out = position + offset
+    _map[_state].render(out)
   }
 }
