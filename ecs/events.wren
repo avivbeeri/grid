@@ -33,7 +33,7 @@ class EventBus {
 
   subscribe(listener, eventType) {
     if (!(listener is EventListener)) {
-      Fiber.abort("Tried to register something which is an EventListener")
+      Fiber.abort("Tried to register something which is not an EventListener")
     }
     if (!_listenerMap.containsKey(eventType)) {
       _listenerMap[eventType] = []
