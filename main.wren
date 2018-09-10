@@ -127,7 +127,7 @@ class MainGame {
     __enemy = __world.newEntity()
     __enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
     __enemy.getComponent(PositionComponent).y = 20
-    __enemy.getComponent(ColliderComponent).box = AABB.new(-4, 30, tileSize*3, tileSize*3)
+    __enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
     __enemy.setComponent(RenderComponent.new(__enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
       "normal": Animation.new(__droneSprite, Point.new(16,16), 1),
       "active": Animation.new(__droneActiveSprite, Point.new(16,16), 1),
