@@ -46,8 +46,8 @@ class Game {
      var text = "[[entities]] \n"
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
-     text = text + "position.x = 20 \n"
-     text = text + "position.y = 60 \n"
+     text = text + "position.x = 90 \n"
+     text = text + "position.y = 160 \n"
 
     var document = Toml.run(text)
     __gameData = TomlMapBuilder.new(document).build()
@@ -62,7 +62,6 @@ class Game {
     if (__tileMapFile.complete && !__done) {
       __done = true
       __tileMap = __tileMapFile.result.data.replace(" ", "").replace("\n", ",").split(",")
-      System.print(__tileMap)
       __state = MainGame.init(__tileMap)
     }
 
@@ -128,15 +127,12 @@ class MainGame is EventListener {
 
 
     // Create tilemap
-    System.print(tileMap)
     var tileSize = 8
     var tileWidth = Canvas.width / tileSize
     var tileHeight = Canvas.height / tileSize
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
-        System.print("%(x),%(y)")
         var tileData = tileMap[y * tileWidth + x]
-        System.print(tileData)
         var tile = _world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
         tile.setComponent(RenderComponent.new(tile.id, Sprite.new(_tileSet, Point.new(8, 8)), -2))
@@ -149,13 +145,14 @@ class MainGame is EventListener {
 
     // Enemy
     _enemy = _world.newEntity()
-    _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
+    _enemy.addComponents([PositionComponent, RenderComponent,/* EnemyAIComponent,*/ ColliderComponent, PhysicsComponent])
+    _enemy.getComponent(PositionComponent).x = 90
     _enemy.getComponent(PositionComponent).y = 20
     _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
     _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
       "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
       "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
-    }), Ellipse.new(Color.green, 24, 10)]), -1))
+    }), Ellipse.new(Color.darkgray, 24, 10)]), -1))
     _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
     _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
   }
