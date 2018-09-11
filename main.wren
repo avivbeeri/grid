@@ -2,6 +2,7 @@ import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
+import "io" for FileSystem
 
 import "./ecs/events" for EventListener
 import "./ecs/world" for World
@@ -51,20 +52,32 @@ class Game {
     var document = Toml.run(text)
     __gameData = TomlMapBuilder.new(document).build()
     System.print(__gameData)
-    __state = MainGame.init()
+    // __state = MainGame.init()
+    __tileMapFile = FileSystem.load("res/test.csv")
 
     // __state.init()
 
   }
   static update() {
-    __state.update()
-    if (__state.next) {
-      __state = __state.next
-      __state.init()
+    if (__tileMapFile.complete && !__done) {
+      __done = true
+      __tileMap = __tileMapFile.result.data.replace(" ", "").replace("\n", ",").split(",")
+      System.print(__tileMap)
+      __state = MainGame.init(__tileMap)
+    }
+
+    if (__state) {
+      __state.update()
+      if (__state.next) {
+        __state = __state.next
+        __state.init()
+      }
     }
   }
   static draw(dt) {
-    __state.draw(dt)
+    if (__state) {
+      __state.draw(dt)
+    }
   }
 }
 
@@ -73,9 +86,10 @@ class Game {
 class MainGame is EventListener {
   next { _next}
 
-  construct init() {
+  construct init(tileMap) {
     _next = null
     _t = 0
+    _tileSet = ImageData.loadFromFile("res/tiles.png")
     _ghostStanding = ImageData.loadFromFile("res/ghost-standing.png")
     _ghostRunningDown = ImageData.loadFromFile("res/ghost-running-down.png")
     _ghostRunningUp = ImageData.loadFromFile("res/ghost-running-up.png")
@@ -114,14 +128,22 @@ class MainGame is EventListener {
 
 
     // Create tilemap
+    System.print(tileMap)
     var tileSize = 8
-    for (y in 0...(Canvas.height/ tileSize)) {
-      for (x in 0...(Canvas.width/ tileSize)) {
+    var tileWidth = Canvas.width / tileSize
+    var tileHeight = Canvas.height / tileSize
+    for (y in 0...tileHeight) {
+      for (x in 0...tileWidth) {
+        System.print("%(x),%(y)")
+        var tileData = tileMap[y * tileWidth + x]
+        System.print(tileData)
         var tile = _world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
-        tile.setComponent(RenderComponent.new(_player.id, Rect.new(Color.darkgray, tileSize, tileSize), -2))
+        tile.setComponent(RenderComponent.new(tile.id, Sprite.new(_tileSet, Point.new(8, 8)), -2))
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
+        tile.getComponent(RenderComponent).renderable.x = (Num.fromString(tileData) % 8) * 8
+        tile.getComponent(RenderComponent).renderable.y = (Num.fromString(tileData) / 8).floor * 8
       }
     }
 

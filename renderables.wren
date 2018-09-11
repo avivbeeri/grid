@@ -32,7 +32,9 @@ class Sprite is Renderable {
   }
 
   x=(v) { _x = v }
+  y=(v) { _y = v }
   x { _x }
+  y { _y }
 
   image { _image }
 }
