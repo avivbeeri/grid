@@ -26,8 +26,8 @@ class World {
   getEntityByTag(tag) {
     return _manager[tag]
   }
-  getEntityById(tag) {
-    return _manager[tag]
+  getEntityById(id) {
+    return _manager[id]
   }
 
   removeEntity(entity) {

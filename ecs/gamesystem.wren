@@ -16,6 +16,9 @@ class GameSystem is EventListener {
   world { _world }
   update() {}
   entities {
+    if (_requires.count == 0) {
+      return world.entities[0..-1]
+    }
     var allowedEntities = []
     for (entity in world.entities) {
       var resultSize = 0
