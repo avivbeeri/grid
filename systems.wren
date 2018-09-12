@@ -304,7 +304,7 @@ class ColliderRenderSystem is GameSystem {
 
       var start = position + collider.pos
 
-      Canvas.rectfill(start.x, start.y, collider.size.x, collider.size.y, Color.red)
+      Canvas.rectfill(start.x, start.y, collider.size.x, collider.size.y, Color.new(255, 0, 0, 255*0.10))
     }
 
   }

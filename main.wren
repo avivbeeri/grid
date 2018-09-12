@@ -186,7 +186,7 @@ class MainGame is EventListener {
     _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
       "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
       "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
-    }), Ellipse.new(Color.darkgray, 24, 10)]), -1))
+    }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
     _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
     _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
   }
