@@ -97,6 +97,10 @@ class MainGame is EventListener {
     _droneSprite = ImageData.loadFromFile("res/drone.png")
     _droneActiveSprite = ImageData.loadFromFile("res/drone-active.png")
 
+    AudioEngine.load("music1", "res/nothalf.ogg")
+    AudioEngine.load("music2", "res/around-the-corner.ogg")
+    AudioEngine.play("music2", 1, true)
+
     // World system setup
     _world = World.new()
     _world.addSystem(PlayerControlSystem)
