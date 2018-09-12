@@ -23,7 +23,8 @@ import "./systems" for
   ScrollSystem,
   ColliderRenderSystem,
   ColliderResolutionSystem,
-  RenderSystem
+  RenderSystem,
+  DetectionEvent
 
 import "./components" for
   PositionComponent,
@@ -47,7 +48,6 @@ class TileMap {
     _collisionMapFile = FileSystem.loadSync("res/test_collision.csv")
     _tileMap = _tileMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| Num.fromString(n) }.toList
     _collisionMap = _collisionMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| n != "-1" }.toList
-    System.print(_collisionMap)
   }
 
   getTileSprite(x, y) {
@@ -95,8 +95,7 @@ class Game {
     if (__state) {
       __state.update()
       if (__state.next) {
-        __state = __state.next
-        __state.init()
+        __state = __state.next.init()
       }
     }
   }
@@ -136,7 +135,7 @@ class MainGame is EventListener {
     _world.addSystem(ColliderResolutionSystem)
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
-    _world.bus.subscribe(this, "detected")
+    _world.bus.subscribe(this, DetectionEvent)
     // _world.addRenderSystem(ColliderRenderSystem)
 
     // Create player
@@ -197,6 +196,9 @@ class MainGame is EventListener {
     _world.update()
     for (event in events) {
       System.print(event)
+      if (event is DetectionEvent) {
+        _next = GameOverState
+      }
     }
     clearEvents()
 

@@ -72,6 +72,10 @@ class TestEventSystem is GameSystem {
   }
 }
 
+class DetectionEvent is Event {
+  construct new() {}
+}
+
 class CollisionEvent is Event {
   construct new(e1, e2) {
     _e1 = e1
@@ -171,10 +175,17 @@ class EnemyAISystem is GameSystem {
           var x = (position.x+8) - (playerPosition.x + 8)
           if (x < 0) {
             x = -1
+            ai.t = 0
           } else if (x > 0) {
             x = 1
+            ai.t = 0
           } else {
             x = 0
+            ai.t = ai.t + 1
+            if (ai.t > 60) {
+              world.bus.publish(DetectionEvent.new())
+
+            }
           }
           physics.velocity.x = -x / 2
       }
