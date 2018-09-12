@@ -49,6 +49,12 @@ class PhysicsSystem is GameSystem {
 
       position.x = position.x + velocity.x
       position.y = position.y + velocity.y
+
+      var collider = entity.getComponent(ColliderComponent)
+      if (collider) {
+        var diff = position.point - physics.pastPosition
+        collider.moved = diff.x == 0 && diff.y == 0
+      }
     }
   }
 }
@@ -81,22 +87,29 @@ class CollisionSystem is GameSystem {
   }
 
   update() {
-    var collisions = {}
+    var tiles = []
+    var actors = []
     for (entity in entities) {
-      var pos1 = entity.getComponent(PositionComponent)
-      var col1 = entity.getComponent(ColliderComponent)
-
-      for (nextEntity in entities) {
-        if (nextEntity.id != entity.id) {
-          var pos2 = nextEntity.getComponent(PositionComponent)
-          var col2 = nextEntity.getComponent(ColliderComponent)
-          if (AABB.isColliding(pos1.point, col1.box, pos2.point, col2.box)) {
-              collisions[entity.id] = nextEntity.id
-              world.bus.publish(CollisionEvent.new(entity.id, nextEntity.id))
-          }
-          // Check overlap
-        }
+      if (entity.getComponent(TileComponent)) {
+        tiles.add(entity)
+      } else {
+        actors.add(entity)
       }
+    }
+    for (entity in actors) {
+      var col1 = entity.getComponent(ColliderComponent)
+        var pos1 = entity.getComponent(PositionComponent)
+        for (nextEntity in entities) {
+          if (nextEntity.id != entity.id) {
+            var pos2 = nextEntity.getComponent(PositionComponent)
+            var col2 = nextEntity.getComponent(ColliderComponent)
+            if (AABB.isColliding(pos1.point, col1.box, pos2.point, col2.box)) {
+
+                world.bus.publish(CollisionEvent.new(entity.id, nextEntity.id))
+            }
+            // Check overlap
+          }
+        }
     }
   }
 }
@@ -108,11 +121,12 @@ class EnemyAISystem is GameSystem {
   }
 
   update() {
+    var player = world.getEntityByTag("player")
 
     for (entity in entities) {
       var collided = false
       for (event in events) {
-        if (event.e1 == entity.id || event.e2 == entity.id) {
+        if ((event.e1 == player.id && event.e2 == entity.id) || (event.e1 == entity.id && event.e2 == player.id)) {
           collided = true
         }
       }
@@ -152,7 +166,6 @@ class EnemyAISystem is GameSystem {
         }
       } else {
           // get player entity
-          var player = world.getEntityByTag("player")
           var playerPosition = player.getComponent(PositionComponent).point
 
           var x = (position.x+8) - (playerPosition.x + 8)
@@ -284,6 +297,43 @@ class ColliderRenderSystem is GameSystem {
     }
 
   }
+}
 
+class ColliderResolutionSystem is GameSystem {
+  construct init(world) {
+    super(world, [])
+    world.bus.subscribe(this, CollisionEvent)
+  }
 
+  update() {
+    var tiles = {}
+    var actors = {}
+    for (event in events) {
+
+      var entity1 = world.getEntityById(event.e1)
+      var position1 = entity1.getComponent(PositionComponent)
+      var collider1 = entity1.getComponent(ColliderComponent)
+      var physics1 = entity1.getComponent(PhysicsComponent)
+
+      var entity2 = world.getEntityById(event.e2)
+      var position2 = entity2.getComponent(PositionComponent)
+      var collider2 = entity2.getComponent(ColliderComponent)
+      var physics2 = entity2.getComponent(PhysicsComponent)
+      if (collider1.type == ColliderComponent.Solid) {
+        if (collider2.type == ColliderComponent.Solid) {
+          position1.point = physics1.pastPosition
+
+        }
+      }
+    }
+    /*
+    for (entity in actors) {
+      var position = entity.getComponent(PositionComponent).point
+      var collider = entity.getComponent(ColliderComponent).box
+      position.point =
+
+    }
+    */
+
+  }
 }

@@ -13,6 +13,7 @@ class PositionComponent is Component {
   }
 
   point { _position }
+  point=(i) { _position = i }
 
   x { _position.x }
   y { _position.y }
@@ -47,10 +48,19 @@ class TileComponent is Component {
 class ColliderComponent is Component {
   construct new(id) {
     super(id)
+    _type = "solid"
   }
 
   box { _box }
   box=(b) { _box = b }
+  moved { _moved }
+  moved=(b) { _moved = b }
+
+  type { _type }
+  type=(t) { _type = t }
+
+  static Trigger { "trigger" }
+  static Solid { "solid" }
 }
 
 class EnemyAIComponent is Component {

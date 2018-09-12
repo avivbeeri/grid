@@ -22,6 +22,7 @@ import "./systems" for
   PlayerControlSystem,
   ScrollSystem,
   ColliderRenderSystem,
+  ColliderResolutionSystem,
   RenderSystem
 
 import "./components" for
@@ -35,6 +36,37 @@ import "./components" for
 
 
 var Yellow = Color.rgb(255, 162, 00, 255)
+
+
+class TileMap {
+  construct load(imageFileName, tileMapFileName, collisionMapFileName) {
+    __tileMapWidth = Canvas.width / 8
+    __tileMapHeight = Canvas.height / 8
+    _image = ImageData.loadFromFile(imageFileName)
+    _tileMapFile = FileSystem.loadSync("res/test_tiles.csv")
+    _collisionMapFile = FileSystem.loadSync("res/test_collision.csv")
+    _tileMap = _tileMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| Num.fromString(n) }.toList
+    _collisionMap = _collisionMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| n != "-1" }.toList
+    System.print(_collisionMap)
+  }
+
+  getTileSprite(x, y) {
+    var sprite = Sprite.new(_image, Point.new(8, 8))
+    var tileValue = getTileAt(x, y)
+    sprite.x = (tileValue % 8) * 8
+    sprite.y = (tileValue / 8).floor * 8
+    return sprite
+  }
+
+  getTileAt(x, y) {
+    return _tileMap[y * __tileMapWidth + x]
+  }
+
+  isSolidAt(x, y) {
+    return _collisionMap[y * __tileMapWidth + x]
+  }
+
+}
 
 // -------------------------
 // ------- GAME CODE -------
@@ -53,17 +85,12 @@ class Game {
     __gameData = TomlMapBuilder.new(document).build()
     System.print(__gameData)
     // __state = MainGame.init()
-    __tileMapFile = FileSystem.load("res/test.csv")
+    __state = MainGame.init(TileMap.load("res/tiles.png", "res/test_tiles.csv", "res/test_collision.csv"))
 
     // __state.init()
 
   }
   static update() {
-    if (__tileMapFile.complete && !__done) {
-      __done = true
-      __tileMap = __tileMapFile.result.data.replace(" ", "").replace("\n", ",").split(",")
-      __state = MainGame.init(__tileMap)
-    }
 
     if (__state) {
       __state.update()
@@ -88,7 +115,6 @@ class MainGame is EventListener {
   construct init(tileMap) {
     _next = null
     _t = 0
-    _tileSet = ImageData.loadFromFile("res/tiles.png")
     _ghostStanding = ImageData.loadFromFile("res/ghost-standing.png")
     _ghostRunningDown = ImageData.loadFromFile("res/ghost-running-down.png")
     _ghostRunningUp = ImageData.loadFromFile("res/ghost-running-up.png")
@@ -107,6 +133,7 @@ class MainGame is EventListener {
     _world.addSystem(EnemyAISystem)
     _world.addSystem(PhysicsSystem)
     _world.addSystem(CollisionSystem)
+    _world.addSystem(ColliderResolutionSystem)
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
     _world.bus.subscribe(this, "detected")
@@ -136,23 +163,27 @@ class MainGame is EventListener {
     var tileHeight = Canvas.height / tileSize
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
-        var tileData = tileMap[y * tileWidth + x]
+        // var tileData = tileMap[y * tileWidth + x]
         var tile = _world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
-        tile.setComponent(RenderComponent.new(tile.id, Sprite.new(_tileSet, Point.new(8, 8)), -2))
+        tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
+
+        if (tileMap.isSolidAt(x, y)) {
+          tile.addComponents([ColliderComponent])
+          tile.getComponent(ColliderComponent).box = AABB.new(0, 0, 8, 8)
+        }
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
-        tile.getComponent(RenderComponent).renderable.x = (Num.fromString(tileData) % 8) * 8
-        tile.getComponent(RenderComponent).renderable.y = (Num.fromString(tileData) / 8).floor * 8
       }
     }
 
     // Enemy
     _enemy = _world.newEntity()
-    _enemy.addComponents([PositionComponent, RenderComponent,/* EnemyAIComponent,*/ ColliderComponent, PhysicsComponent])
+    _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
     _enemy.getComponent(PositionComponent).x = 90
     _enemy.getComponent(PositionComponent).y = 20
     _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
+    _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
     _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
       "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
       "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
