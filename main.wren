@@ -82,8 +82,8 @@ class Game {
      var text = "[[entities]] \n"
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
-     text = text + "position.x = 320 \n"
-     text = text + "position.y = 616 \n"
+     text = text + "position.x = 472 \n"
+     text = text + "position.y = 670 \n"
 
     var document = Toml.run(text)
     __gameData = TomlMapBuilder.new(document).build()
