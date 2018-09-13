@@ -168,18 +168,20 @@ class MainGame is EventListener {
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
         // var tileData = tileMap[y * tileWidth + x]
-        var tile = _world.newEntity()
-        tile.addComponents([PositionComponent, RenderComponent, TileComponent])
-        tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
+        if (tileMap.getTileAt(x, y) > -1) {
+          var tile = _world.newEntity()
+          tile.addComponents([PositionComponent, RenderComponent, TileComponent])
+          tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
 
-        if (tileMap.isSolidAt(x, y)) {
-          tile.addComponents([ColliderComponent])
-          tile.getComponent(ColliderComponent).box = AABB.new(0, 0, 8, 8)
-        }
-        tile.getComponent(PositionComponent).x = x * tileSize
-        tile.getComponent(PositionComponent).y = y * tileSize
-        if (x >= 40 && x < 80 && y >= 30 && y < 90) {
-          tile.addComponents([ActiveComponent])
+          if (tileMap.isSolidAt(x, y)) {
+            tile.addComponents([ColliderComponent])
+            tile.getComponent(ColliderComponent).box = AABB.new(0, 0, 8, 8)
+          }
+          tile.getComponent(PositionComponent).x = x * tileSize
+          tile.getComponent(PositionComponent).y = y * tileSize
+          if (x >= 40 && x < 80 && y >= 30 && y < 90) {
+            tile.addComponents([ActiveComponent])
+          }
         }
       }
     }
