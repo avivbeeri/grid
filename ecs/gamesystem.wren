@@ -15,9 +15,9 @@ class GameSystem is EventListener {
   }
   world { _world }
   update() {}
-  entities {
+  updateEntityList() {
     if (_requires.count == 0) {
-      return world.entities[0..-1]
+      return world.entities
     }
     var allowedEntities = []
     for (entity in world.entities) {
@@ -32,6 +32,17 @@ class GameSystem is EventListener {
       }
     }
     return allowedEntities
+
+  }
+  clearEntityCache() {
+    _entities = null
+  }
+
+  entities {
+    if (!_entities) {
+      _entities = updateEntityList()
+    }
+    return _entities
   }
 
   static isSystemType(classObject) {

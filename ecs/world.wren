@@ -16,6 +16,9 @@ class World {
   bus { _eventBus }
 
   newEntity() {
+    for (system in _systems) {
+      system.clearEntityCache()
+    }
     return _manager.new()
   }
 
