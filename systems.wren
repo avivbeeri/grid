@@ -249,12 +249,25 @@ class ScrollSystem is GameSystem {
     super(world, [PositionComponent])
   }
   update() {
-    for (entity in entities) {
-      var position = entity.getComponent(PositionComponent)
-      position.x = (position.x + 1) % Canvas.width
-      if (position.x > Canvas.width/2) {
+    var player = world.getEntityByTag("player").getComponent(PositionComponent).point
+    var playerPast = world.getEntityByTag("player").getComponent(PhysicsComponent).pastPosition
+    var screenX = (player.x / Canvas.width).floor
+    var screenY = (player.y / Canvas.height).floor
+    var oldScreenX = (playerPast.x / Canvas.width).floor
+    var oldScreenY = (playerPast.y / Canvas.height).floor
 
+    if (oldScreenX != screenX || oldScreenY != screenY) {
+      for (entity in world.entities) {
+        var position = entity.getComponent(PositionComponent).point
+        var entityScreenX = (position.x / Canvas.width).floor
+        var entityScreenY = (position.y / Canvas.height).floor
+        if (entityScreenX == screenX && entityScreenY == screenY) {
+          entity.addComponents([ActiveComponent])
+        } else {
+          entity.removeComponent(ActiveComponent)
+        }
       }
+      world.clearSystemCaches()
     }
   }
 }
@@ -266,6 +279,10 @@ class RenderSystem is GameSystem {
   }
   update() {
     Canvas.cls(Color.black)
+    var player = world.getEntityByTag("player").getComponent(PositionComponent).point
+    var screenX = (player.x / Canvas.width).floor
+    var screenY = (player.y / Canvas.height).floor
+    var cameraOffset = Point.new(screenX * -40 * 8, screenY * -30 * 8)
     var sortedEntities = entities[0..-1]
 
     // Insertion sort the entities
@@ -286,7 +303,7 @@ class RenderSystem is GameSystem {
       var renderable = entity.getComponent(RenderComponent).renderable
 
       if (renderable) {
-        renderable.render(position + Point.new(-40*8, -60*8))
+        renderable.render(position + cameraOffset)
       }
     }
   }

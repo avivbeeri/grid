@@ -45,8 +45,8 @@ class TileMap {
     __tileMapWidth = (Canvas.width / 8) * 3
     __tileMapHeight = (Canvas.height / 8) * 3
     _image = ImageData.loadFromFile(imageFileName)
-    _tileMapFile = FileSystem.loadSync("res/level1_tiles.csv")
-    _collisionMapFile = FileSystem.loadSync("res/level1_collision.csv")
+    _tileMapFile = FileSystem.loadSync(tileMapFileName)
+    _collisionMapFile = FileSystem.loadSync(collisionMapFileName)
     _tileMap = _tileMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| Num.fromString(n) }.toList
     _collisionMap = _collisionMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| n != "-1" }.toList
   }
@@ -89,7 +89,7 @@ class Game {
     __gameData = TomlMapBuilder.new(document).build()
     System.print(__gameData)
     // __state = MainGame.init()
-    __state = MainGame.init(TileMap.load("res/tiles.png", "res/test_tiles.csv", "res/test_collision.csv"))
+    __state = MainGame.init(TileMap.load("res/tiles.png", "res/level1_tiles.csv", "res/level1_collision.csv"))
 
     // __state.init()
 
@@ -137,6 +137,7 @@ class MainGame is EventListener {
     _world.addSystem(PhysicsSystem)
     _world.addSystem(CollisionSystem)
     _world.addSystem(ColliderResolutionSystem)
+    _world.addSystem(ScrollSystem)
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
     _world.bus.subscribe(this, DetectionEvent)
@@ -167,7 +168,6 @@ class MainGame is EventListener {
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
         // var tileData = tileMap[y * tileWidth + x]
-        if (x >= 40 && x <= 80 && y >= 30 && y <= 90) {
         var tile = _world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
         tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
@@ -178,6 +178,7 @@ class MainGame is EventListener {
         }
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
+        if (x >= 40 && x < 80 && y >= 30 && y < 90) {
           tile.addComponents([ActiveComponent])
         }
       }
@@ -185,7 +186,7 @@ class MainGame is EventListener {
 
     // Enemy
     _enemy = _world.newEntity()
-    _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
+    _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
     _enemy.getComponent(PositionComponent).x = 90
     _enemy.getComponent(PositionComponent).y = 20
     _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
