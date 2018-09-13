@@ -5,13 +5,13 @@ class Entity {
   construct new(world, id) {
     _world = world
     _id = id
-  }  
+  }
 
   id { _id }
 
   // Helper methods
   // Rather than calling the World object with unexpressive API
-  
+
 
   addComponents(componentTypes) {
     return _world.addComponentsToEntity(this, componentTypes)

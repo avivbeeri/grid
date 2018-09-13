@@ -16,10 +16,17 @@ class World {
   bus { _eventBus }
 
   newEntity() {
+    clearSystemCaches()
+    return _manager.new()
+  }
+
+  clearSystemCaches() {
     for (system in _systems) {
       system.clearEntityCache()
     }
-    return _manager.new()
+    for (system in _renderSystems) {
+      system.clearEntityCache()
+    }
   }
 
   setEntityTag(tag, entity) {
@@ -94,8 +101,8 @@ class World {
   removeComponentFromEntity(entity, component) {
     // PRE: assumes a manager exists
     if (component is Class && Component.isComponentType(component)) {
-      componentType = Component.getSubtype(componentType)
-      return _componentManagers[component].remove(entity)
+      var componentType = Component.getSubtype(component)
+      return _componentManagers[componentType].remove(entity)
     } else if (component is Component) {
       var componentType = Component.getSubtype(component.type)
       return _componentManagers[componentType].remove(entity)

@@ -16,7 +16,7 @@ class Component {
   }
 
   static getSubtype(classObject) {
-    var type = classObject
+    var type = classObject.supertype
     var previous = classObject
     while (type != Component) {
       previous = type

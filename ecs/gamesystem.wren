@@ -44,6 +44,7 @@ class GameSystem is EventListener {
     }
     return _entities
   }
+  requires { _requires }
 
   static isSystemType(classObject) {
     return Utils.isClassDescendant(classObject, GameSystem)
