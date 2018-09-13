@@ -265,6 +265,13 @@ class ScrollSystem is GameSystem {
           entity.addComponents([ActiveComponent])
         } else {
           entity.removeComponent(ActiveComponent)
+          if ((entityScreenX - screenX).abs == 1 || (entityScreenY-screenY).abs == 1) {
+            var tileX = ((position.x % Canvas.width) / 8).floor
+            var tileY = ((position.y % Canvas.height) / 8).floor
+            if (tileX == 0 || tileX == 39 || tileY == 0 || tileY == 29) {
+              entity.addComponents([ActiveComponent])
+            }
+          }
         }
       }
       world.clearSystemCaches()
