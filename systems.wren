@@ -7,6 +7,7 @@ import "./ecs/gamesystem" for GameSystem
 import "./ecs/events" for Event, EventListener
 
 import "./components" for
+  ActiveComponent,
   PositionComponent,
   PhysicsComponent,
   PlayerControlComponent,
@@ -33,7 +34,7 @@ class TileSystem is GameSystem {
 
 class PhysicsSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, PhysicsComponent])
+    super(world, [ActiveComponent, PositionComponent, PhysicsComponent])
   }
 
   update() {
@@ -87,7 +88,7 @@ class CollisionEvent is Event {
 
 class CollisionSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, ColliderComponent])
+    super(world, [ActiveComponent, PositionComponent, ColliderComponent])
   }
 
   update() {
@@ -261,7 +262,7 @@ class ScrollSystem is GameSystem {
 
 class RenderSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, RenderComponent])
+    super(world, [PositionComponent, RenderComponent, ActiveComponent])
   }
   update() {
     Canvas.cls(Color.black)
@@ -285,7 +286,7 @@ class RenderSystem is GameSystem {
       var renderable = entity.getComponent(RenderComponent).renderable
 
       if (renderable) {
-        renderable.render(position)
+        renderable.render(position + Point.new(-40*8, -60*8))
       }
     }
   }
@@ -294,7 +295,7 @@ class RenderSystem is GameSystem {
 
 class ColliderRenderSystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, ColliderComponent])
+    super(world, [ActiveComponent, PositionComponent, ColliderComponent])
   }
 
   update() {

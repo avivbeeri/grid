@@ -27,6 +27,7 @@ import "./systems" for
   DetectionEvent
 
 import "./components" for
+  ActiveComponent,
   PositionComponent,
   PhysicsComponent,
   PlayerControlComponent,
@@ -41,11 +42,11 @@ var Yellow = Color.rgb(255, 162, 00, 255)
 
 class TileMap {
   construct load(imageFileName, tileMapFileName, collisionMapFileName) {
-    __tileMapWidth = Canvas.width / 8
-    __tileMapHeight = Canvas.height / 8
+    __tileMapWidth = (Canvas.width / 8) * 3
+    __tileMapHeight = (Canvas.height / 8) * 3
     _image = ImageData.loadFromFile(imageFileName)
-    _tileMapFile = FileSystem.loadSync("res/test_tiles.csv")
-    _collisionMapFile = FileSystem.loadSync("res/test_collision.csv")
+    _tileMapFile = FileSystem.loadSync("res/level1_tiles.csv")
+    _collisionMapFile = FileSystem.loadSync("res/level1_collision.csv")
     _tileMap = _tileMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| Num.fromString(n) }.toList
     _collisionMap = _collisionMapFile.replace(" ", "").replace("\n", ",").split(",").map {|n| n != "-1" }.toList
   }
@@ -66,6 +67,9 @@ class TileMap {
     return _collisionMap[y * __tileMapWidth + x]
   }
 
+  static width { __tileMapWidth }
+  static height { __tileMapHeight }
+
 }
 
 // -------------------------
@@ -78,8 +82,8 @@ class Game {
      var text = "[[entities]] \n"
      //text = text + "basic2.broken = \"Hello \nworld\" \n"
      // text = text + "test.broken = 'hello"
-     text = text + "position.x = 90 \n"
-     text = text + "position.y = 160 \n"
+     text = text + "position.x = 320 \n"
+     text = text + "position.y = 616 \n"
 
     var document = Toml.run(text)
     __gameData = TomlMapBuilder.new(document).build()
@@ -142,7 +146,7 @@ class MainGame is EventListener {
     _player = _world.newEntity()
     _world.setEntityTag("player", _player)
 
-    _player.addComponents([PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
+    _player.addComponents([ActiveComponent, PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
     _player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
     _player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
     _player.setComponent(RenderComponent.new(_player.id, SpriteMap.new("standing", {
@@ -158,11 +162,12 @@ class MainGame is EventListener {
 
     // Create tilemap
     var tileSize = 8
-    var tileWidth = Canvas.width / tileSize
-    var tileHeight = Canvas.height / tileSize
+    var tileWidth = TileMap.width
+    var tileHeight = TileMap.height
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
         // var tileData = tileMap[y * tileWidth + x]
+        if (x >= 40 && x <= 80 && y >= 30 && y <= 90) {
         var tile = _world.newEntity()
         tile.addComponents([PositionComponent, RenderComponent, TileComponent])
         tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
@@ -173,6 +178,8 @@ class MainGame is EventListener {
         }
         tile.getComponent(PositionComponent).x = x * tileSize
         tile.getComponent(PositionComponent).y = y * tileSize
+          tile.addComponents([ActiveComponent])
+        }
       }
     }
 

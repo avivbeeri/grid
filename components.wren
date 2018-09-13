@@ -2,6 +2,10 @@ import "graphics" for Point, Color, Canvas
 import "./ecs/component" for Component
 import "./renderables" for Renderable
 
+class ActiveComponent is Component {
+  construct new(id) { super(id) }
+}
+
 class PositionComponent is Component {
   construct new(id) {
     super(id)
