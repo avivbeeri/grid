@@ -9,10 +9,6 @@ import "./ecs/world" for World
 import "./util" for AABB
 import "./renderables" for Rect, Sprite, Animation, SpriteMap, SpriteGroup, Ellipse
 
-import "./toml/toml" for Toml
-import "./toml/toml-map-builder" for TomlMapBuilder
-
-
 import "./systems" for
   PhysicsSystem,
   TestEventSystem,
@@ -78,24 +74,10 @@ class TileMap {
 // ------- GAME CODE -------
 // -------------------------
 class Game {
-  static gameData { __gameData }
   static init() {
-
-     var text = "[[entities]] \n"
-     //text = text + "basic2.broken = \"Hello \nworld\" \n"
-     // text = text + "test.broken = 'hello"
-     text = text + "position.x = 472 \n"
-     text = text + "position.y = 670 \n"
-
-    var document = Toml.run(text)
-    __gameData = TomlMapBuilder.new(document).build()
-    System.print(__gameData)
-    // __state = MainGame.init()
     __state = TitleState.init(TileMap.load("res/tiles.png", "res/level1_tiles.csv", "res/level1_collision.csv"))
-
-    // __state.init()
-
   }
+
   static update() {
     if (__state) {
       __state.update()
@@ -129,9 +111,6 @@ class MainGame is EventListener {
     _droneSprite = ImageData.loadFromFile("res/drone.png")
     _droneActiveSprite = ImageData.loadFromFile("res/drone-active.png")
 
-    AudioEngine.load("music1", "res/nothalf.ogg")
-    AudioEngine.load("music2", "res/around-the-corner.ogg")
-    AudioEngine.play("music2", 1, true)
 
     // World system setup
     _world = World.new()
@@ -365,6 +344,8 @@ class TitleState {
     _tileMap = tileMap
     _image = ImageData.loadFromFile("res/title.png")
     _state = null
+    AudioEngine.load("music2", "res/around-the-corner.ogg")
+    AudioEngine.play("music2", 1, true)
   }
   update() {
     if (Keyboard.isKeyDown("space")) {
