@@ -91,7 +91,7 @@ class Game {
     __gameData = TomlMapBuilder.new(document).build()
     System.print(__gameData)
     // __state = MainGame.init()
-    __state = MainGame.init(TileMap.load("res/tiles.png", "res/level1_tiles.csv", "res/level1_collision.csv"))
+    __state = TitleState.init(TileMap.load("res/tiles.png", "res/level1_tiles.csv", "res/level1_collision.csv"))
 
     // __state.init()
 
@@ -143,7 +143,7 @@ class MainGame is EventListener {
     _world.addSystem(ScrollSystem)
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
-    _world.addRenderSystem(ColliderRenderSystem)
+    // _world.addRenderSystem(ColliderRenderSystem)
 
     _world.bus.subscribe(this, DetectionEvent)
     _world.bus.subscribe(this, CompletionEvent)
@@ -195,6 +195,7 @@ class MainGame is EventListener {
     // Enemy
     var enemyData = [
       // [x, y, mode, dist, speed, t, dir]
+      [59, 70, "vertical", 0, 0, 0, 1],
       [42, 63, "vertical", 10, 0.5, 0, 1],
       [77, 68, "vertical", 10, 0.5, 5, -1],
 
@@ -250,18 +251,18 @@ class MainGame is EventListener {
 
     // Truck
     var screenX = 1
-    var screenY = 2
+    var screenY = 0
     _truck = _world.newEntity()
     _truck.addComponents([PositionComponent, RenderComponent, ColliderComponent, PhysicsComponent ])
-    _truck.getComponent(PositionComponent).x = tileSize * screenX * 40 + tileSize*20
-    _truck.getComponent(PositionComponent).y = tileSize * screenY * 30 + tileSize*10
-    _truck.getComponent(ColliderComponent).box = AABB.new(8, 0, 72, 40)
+    _truck.getComponent(PositionComponent).x = tileSize * screenX * 40 + tileSize*28
+    _truck.getComponent(PositionComponent).y = tileSize * screenY * 30 + tileSize*18
+    _truck.getComponent(ColliderComponent).box = AABB.new(8, 3, 72, 32)
     _truck.getComponent(ColliderComponent).type = ColliderComponent.Solid
 
     _standingTruckSprite = ImageData.loadFromFile("res/truck-still.png")
     _drivingTruckSprite = ImageData.loadFromFile("res/truck-driving.png")
 
-    _truck.setComponent(RenderComponent.new(_truck.id, SpriteMap.new("driving", {
+    _truck.setComponent(RenderComponent.new(_truck.id, SpriteMap.new("standing", {
       "standing": Sprite.new(_standingTruckSprite, Point.new(80,40)),
       "standing-on": Sprite.new(_standingTruckSprite, Point.new(80,40)),
       "driving": Animation.new(_drivingTruckSprite, Point.new(80,40), 2),
@@ -326,7 +327,7 @@ class GameOverState {
   draw(dt) {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
-    Canvas.print("You were detected %(_score) times", 0, 120+5, Color.white)
+    Canvas.print("You were detected %(_score) times", 160 - (9*8), 120+16, Color.white)
   }
 }
 
@@ -352,6 +353,36 @@ class NextMissionState {
   draw(dt) {
     Canvas.cls()
     Canvas.print("Mission Success", 160-27, 120-3, Color.white)
-    Canvas.print("You were detected %(_score) times", 0, 120+5, Color.white)
+    Canvas.print("You were detected %(_score) times", 160-(9*8), 120+16, Color.white)
+  }
+}
+
+class TitleState {
+  next { _next}
+  construct init(tileMap) {
+    _next = null
+    _hold = 0
+    _tileMap = tileMap
+    _image = ImageData.loadFromFile("res/title.png")
+    _state = null
+  }
+  update() {
+    if (Keyboard.isKeyDown("space")) {
+      _hold = _hold + 1
+      if (_hold > 4 && _state) {
+        _next = _state
+      }
+    } else {
+      _state = _state || MainGame.init(_tileMap)
+      _hold = 0
+    }
+  }
+
+  draw(dt) {
+    Canvas.cls()
+    _image.draw(0,0)
+    if (_state) {
+      Canvas.print("Hold SPACE to Start", 160-(14*4), 200, Color.white)
+    }
   }
 }
