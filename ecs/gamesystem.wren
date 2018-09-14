@@ -32,7 +32,6 @@ class GameSystem is EventListener {
       }
     }
     return allowedEntities
-
   }
   clearEntityCache() {
     _entities = null

@@ -121,7 +121,7 @@ class CollisionSystem is GameSystem {
 
 class EnemyAISystem is GameSystem {
   construct init(world) {
-    super(world, [PositionComponent, EnemyAIComponent])
+    super(world, [PositionComponent, EnemyAIComponent, ActiveComponent])
     world.bus.subscribe(this, CollisionEvent)
   }
 
@@ -276,6 +276,7 @@ class ScrollSystem is GameSystem {
   construct init(world) {
     super(world, [PositionComponent])
     _screenCache = null
+    _firstRun = true
   }
 
   clearEntityCache() {
@@ -292,7 +293,7 @@ class ScrollSystem is GameSystem {
   update() {
     if (!_screenCache) {
       _screenCache = {}
-      for (entity in world.entities) {
+      for (entity in entities) {
         var position = entity.getComponent(PositionComponent).point
         var screenX = (position.x / Canvas.width).floor
         var screenY = (position.y / Canvas.height).floor
@@ -310,33 +311,15 @@ class ScrollSystem is GameSystem {
     var oldScreenX = (playerPast.x / Canvas.width).floor
     var oldScreenY = (playerPast.y / Canvas.height).floor
 
-    if (oldScreenX != screenX || oldScreenY != screenY) {
+    if (_firstRun || oldScreenX != screenX || oldScreenY != screenY) {
       for (entity in _screenCache[hash(oldScreenX, oldScreenY)]) {
         entity.removeComponent(ActiveComponent)
       }
       for (entity in _screenCache[hash(screenX, screenY)]) {
         entity.addComponents([ActiveComponent])
       }
-      /*
-      for (entity in world.entities) {
-        var position = entity.getComponent(PositionComponent).point
-        var entityScreenX = (position.x / Canvas.width).floor
-        var entityScreenY = (position.y / Canvas.height).floor
-        if (entityScreenX == screenX && entityScreenY == screenY) {
-          entity.addComponents([ActiveComponent])
-        } else {
-          entity.removeComponent(ActiveComponent)
-          if ((entityScreenX - screenX).abs == 1 || (entityScreenY-screenY).abs == 1) {
-            var tileX = ((position.x % Canvas.width) / 8).floor
-            var tileY = ((position.y % Canvas.height) / 8).floor
-            if (tileX == 0 || tileX == 39 || tileY == 0 || tileY == 29) {
-              entity.addComponents([ActiveComponent])
-            }
-          }
-        }
-      }
-      */
       world.clearSystemCaches()
+      _firstRun = false
     }
   }
 }
