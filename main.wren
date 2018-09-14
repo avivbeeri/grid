@@ -190,15 +190,38 @@ class MainGame is EventListener {
 
     // Enemy
     var enemyData = [
-      // [x, y, mode, dist, speed]
-      [42 * tileSize, 63 * tileSize, "vertical", 10, 0.5, 0, 1],
-      [77 * tileSize, 68 * tileSize, "vertical", 10, 0.5, 5, -1]
+      // [x, y, mode, dist, speed, t, dir]
+      [42, 63, "vertical", 10, 0.5, 0, 1],
+      [77, 68, "vertical", 10, 0.5, 5, -1],
+
+      [27, 62, "horizontal", 10, 0.75, 0, 1],
+      [1, 62, "horizontal", 10, 0.75, 0, 1],
+
+      [14, 40, "vertical", 7, 0.75, 0, -1],
+      [25, 33, "vertical", 7, 0.75, 0, 1],
+      [2, 52, "horizontal", 8, 1, 0, 1],
+
+      [50, 40, "vertical", 7, 1, 0, -1],
+      [67, 33, "vertical", 7, 1, 0, 1],
+      [54, 30, "horizontal", 8, 1, 0, 1],
+      [64, 33, "horizontal", 8, 1, 0, -1],
+
+      [53, 9, "horizontal", 10, 1.25, 0, 1],
+      [66, 9, "horizontal", 10, 1.25, 0, -1],
+
+      [98, 41, "horizontal", 10, 0.75, 0, -1],
+      [101, 40, "horizontal", 10, 0.75, 0, 1],
+      [101, 41, "vertical", 10, 0.75, 0, -1],
+      [98, 40, "vertical", 10, 0.75, 0, 1],
+
+      [114, 66, "horizontal", 30, 0.75, 0, -1],
+      [86, 70, "horizontal", 30, 0.75, 0, 1],
     ]
 
     for (data in enemyData) {
       // Prefab
       _enemy = _world.newEntity()
-      _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
+      _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent])
       _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
       _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
       _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
@@ -211,8 +234,8 @@ class MainGame is EventListener {
       _enemy.getComponent(RenderComponent).renderable.children[1].z = -1
 
       // Customise
-      _enemy.getComponent(PositionComponent).x = data[0]
-      _enemy.getComponent(PositionComponent).y = data[1]
+      _enemy.getComponent(PositionComponent).x = data[0] * tileSize
+      _enemy.getComponent(PositionComponent).y = data[1] * tileSize
       var ai = _enemy.getComponent(EnemyAIComponent)
       ai.mode = data[2]
       ai.dist = data[3]
@@ -225,7 +248,7 @@ class MainGame is EventListener {
     var screenX = 1
     var screenY = 2
     _truck = _world.newEntity()
-    _truck.addComponents([PositionComponent, RenderComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
+    _truck.addComponents([PositionComponent, RenderComponent, ColliderComponent, PhysicsComponent ])
     _truck.getComponent(PositionComponent).x = tileSize * screenX * 40 + tileSize*20
     _truck.getComponent(PositionComponent).y = tileSize * screenY * 30 + tileSize*10
     _truck.getComponent(ColliderComponent).box = AABB.new(8, 0, 72, 40)
