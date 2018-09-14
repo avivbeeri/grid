@@ -199,6 +199,27 @@ class MainGame is EventListener {
     }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
     _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
     _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
+
+    // Enemy
+    var screenX = 1
+    var screenY = 2
+    _truck = _world.newEntity()
+    _truck.addComponents([PositionComponent, RenderComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
+    _truck.getComponent(PositionComponent).x = tileSize * screenX * 40 + tileSize*20
+    _truck.getComponent(PositionComponent).y = tileSize * screenY * 30 + tileSize*10
+    _truck.getComponent(ColliderComponent).box = AABB.new(8, 0, 72, 40)
+    _truck.getComponent(ColliderComponent).type = ColliderComponent.Solid
+
+    _standingTruckSprite = ImageData.loadFromFile("res/truck-still.png")
+    _drivingTruckSprite = ImageData.loadFromFile("res/truck-driving.png")
+
+    _truck.setComponent(RenderComponent.new(_truck.id, SpriteMap.new("driving", {
+      "standing": Sprite.new(_standingTruckSprite, Point.new(80,40)),
+      "standing-on": Sprite.new(_standingTruckSprite, Point.new(80,40)),
+      "driving": Animation.new(_drivingTruckSprite, Point.new(80,40), 2),
+    }), -1))
+
+    _truck.getComponent(RenderComponent).renderable["standing-on"].setSrc(80, 0, 80, 40)
   }
 
   update() {

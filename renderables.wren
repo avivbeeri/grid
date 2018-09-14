@@ -127,4 +127,5 @@ class SpriteMap is Renderable {
   render(position) {
     _map[_state].render(position + offset)
   }
+  [v] { _map[v] }
 }
