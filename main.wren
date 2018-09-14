@@ -187,24 +187,37 @@ class MainGame is EventListener {
     }
 
     // Enemy
-    _enemy = _world.newEntity()
-    _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
-    _enemy.getComponent(PositionComponent).x = 40*1*8 + 10
-    _enemy.getComponent(PositionComponent).y = 30*2*8 + 40
-    _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
-    _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
-    var ai = _enemy.getComponent(EnemyAIComponent)
-    ai.mode = "horizontal"
-    ai.dist = 10
-    ai.speed = 0.5
-    _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
-      "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
-      "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
-    }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
-    _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
-    _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
+    var enemyData = [
+      // [x, y, mode, dist, speed]
+      [42 * tileSize, 63 * tileSize, "vertical", 10, 0.5, 0, 1],
+      [77 * tileSize, 68 * tileSize, "vertical", 10, 0.5, 5, -1]
+    ]
 
-    // Enemy
+    for (data in enemyData) {
+      // Prefab
+      _enemy = _world.newEntity()
+      _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
+      _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
+      _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
+      _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
+        "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
+        "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
+      }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
+      _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
+      _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
+
+      // Customise
+      _enemy.getComponent(PositionComponent).x = data[0]
+      _enemy.getComponent(PositionComponent).y = data[1]
+      var ai = _enemy.getComponent(EnemyAIComponent)
+      ai.mode = data[2]
+      ai.dist = data[3]
+      ai.speed = data[4]
+      ai.t = (data[5] / ai.speed) * tileSize
+      ai.dir = data[6]
+    }
+
+    // Truck
     var screenX = 1
     var screenY = 2
     _truck = _world.newEntity()
