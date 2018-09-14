@@ -258,7 +258,7 @@ class ScrollSystem is GameSystem {
   hash(x, y) {
     var a = x
     var b = y
-    return a >= b ? a * a + a + b : a + b * b;
+    return a >= b ? a * a + a + b : a + b * b
   }
 
   update() {
@@ -283,6 +283,13 @@ class ScrollSystem is GameSystem {
     var oldScreenY = (playerPast.y / Canvas.height).floor
 
     if (oldScreenX != screenX || oldScreenY != screenY) {
+      for (entity in _screenCache[hash(oldScreenX, oldScreenY)]) {
+        entity.removeComponent(ActiveComponent)
+      }
+      for (entity in _screenCache[hash(screenX, screenY)]) {
+        entity.addComponents([ActiveComponent])
+      }
+      /*
       for (entity in world.entities) {
         var position = entity.getComponent(PositionComponent).point
         var entityScreenX = (position.x / Canvas.width).floor
@@ -300,6 +307,7 @@ class ScrollSystem is GameSystem {
           }
         }
       }
+      */
       world.clearSystemCaches()
     }
   }
