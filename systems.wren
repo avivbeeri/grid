@@ -358,11 +358,6 @@ class RenderSystem is GameSystem {
   }
   update() {
     Canvas.cls(Color.black)
-    var player = world.getEntityByTag("player").getComponent(PositionComponent).point
-    var screenX = (player.x / Canvas.width).floor
-    var screenY = (player.y / Canvas.height).floor
-    var cameraOffset = Point.new(screenX * -40 * 8, screenY * -30 * 8)
-    var sortedEntities = entities[0..-1]
 
     var layers = _layers
     if (_updated) {
@@ -396,6 +391,11 @@ class RenderSystem is GameSystem {
         }
       }
     }
+
+    var player = world.getEntityByTag("player").getComponent(PositionComponent).point
+    var screenX = (player.x / Canvas.width).floor
+    var screenY = (player.y / Canvas.height).floor
+    var cameraOffset = Point.new(screenX * -40 * 8, screenY * -30 * 8)
 
     for (i in _minLayer.._maxLayer) {
       if (layers[i]) {
