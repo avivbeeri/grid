@@ -141,7 +141,7 @@ class MainGame is EventListener {
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
     _world.bus.subscribe(this, DetectionEvent)
-    _world.addRenderSystem(ColliderRenderSystem)
+    // _world.addRenderSystem(ColliderRenderSystem)
 
     // Create player
     _player = _world.newEntity()
@@ -159,6 +159,7 @@ class MainGame is EventListener {
     })))
     _player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 16)
     _player.getComponent(RenderComponent).renderable.offset = Point.new(0, -16)
+    _player.getComponent(RenderComponent).renderable.z = 1
 
 
     // Create tilemap
@@ -172,6 +173,7 @@ class MainGame is EventListener {
           var tile = _world.newEntity()
           tile.addComponents([PositionComponent, RenderComponent, TileComponent])
           tile.setComponent(RenderComponent.new(tile.id, tileMap.getTileSprite(x, y), -2))
+          tile.getComponent(RenderComponent).renderable.z = -2
 
           if (tileMap.isSolidAt(x, y)) {
             tile.addComponents([ColliderComponent])
@@ -205,6 +207,8 @@ class MainGame is EventListener {
       }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
       _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
       _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
+      _enemy.getComponent(RenderComponent).renderable.children[0].z = 2
+      _enemy.getComponent(RenderComponent).renderable.children[1].z = -1
 
       // Customise
       _enemy.getComponent(PositionComponent).x = data[0]
@@ -237,6 +241,7 @@ class MainGame is EventListener {
     }), -1))
 
     _truck.getComponent(RenderComponent).renderable["standing-on"].setSrc(80, 0, 80, 40)
+    _truck.getComponent(RenderComponent).renderable.z = -1
   }
 
   update() {

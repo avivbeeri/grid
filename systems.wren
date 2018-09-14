@@ -343,8 +343,18 @@ class ScrollSystem is GameSystem {
 
 
 class RenderSystem is GameSystem {
+  min(a, b) {
+    return a < b ? a : b
+  }
+  max(a, b) {
+    return a > b ? a : b
+  }
   construct init(world) {
     super(world, [PositionComponent, RenderComponent, ActiveComponent])
+    _updated = true
+    _layers = {}
+    _minLayer = 0
+    _maxLayer = 0
   }
   update() {
     Canvas.cls(Color.black)
@@ -354,27 +364,52 @@ class RenderSystem is GameSystem {
     var cameraOffset = Point.new(screenX * -40 * 8, screenY * -30 * 8)
     var sortedEntities = entities[0..-1]
 
-    // Insertion sort the entities
-    // TODO: We should cache this
-    for (i in 0...sortedEntities.count) {
-      var holePosition = i
-      var entity = sortedEntities[i]
-      var render = entity.getComponent(RenderComponent)
-      while (holePosition > 0 && sortedEntities[holePosition - 1].getComponent(RenderComponent).z > render.z) {
-        sortedEntities[holePosition] = sortedEntities[holePosition - 1]
-        holePosition = holePosition - 1
+    var layers = _layers
+    if (_updated) {
+      _updated = false
+      _minLayer = 0
+      _maxLayer = 0
+      for (entity in entities) {
+        var stack = []
+        var renderable = entity.getComponent(RenderComponent).renderable
+        var point = Point.new(0, 0)
+        stack.add({ "r": renderable, "offset": point, "entity": entity })
+        while (stack.count > 0) {
+          var obj = stack.removeAt(-1)
+
+          var r = obj["r"]
+          var z = r.z
+          _minLayer = min(_minLayer, z)
+          _maxLayer = max(_maxLayer, z)
+          var offset = obj["offset"]
+
+          if (r.children.count == 0) {
+            if (!layers[z]) {
+              layers[z] = []
+            }
+            layers[z].add(obj)
+          } else {
+            for (child in r.children) {
+              stack.add({ "r": child, "offset": offset, "entity": entity})
+            }
+          }
+        }
       }
-      sortedEntities[holePosition] = entity
     }
 
-    for (entity in sortedEntities) {
-      var position = entity.getComponent(PositionComponent).point
-      var renderable = entity.getComponent(RenderComponent).renderable
-
-      if (renderable) {
-        renderable.render(position + cameraOffset)
+    for (i in _minLayer.._maxLayer) {
+      if (layers[i]) {
+        for (obj in layers[i]) {
+          var position = obj["entity"].getComponent(PositionComponent).point
+          obj["r"].render(obj["offset"] + position + cameraOffset)
+        }
       }
     }
+  }
+  clearEntityCache() {
+    super.clearEntityCache()
+    _layers = {}
+    _updated = true
   }
 }
 

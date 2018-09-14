@@ -5,6 +5,13 @@ class Renderable {
   children { [] }
   offset { _offset || Point.new(0,0) }
   offset=(v) { _offset = v }
+  z { _z || 0 }
+  z=(v) {
+    _z = v
+    for (child in children) {
+      child.z = v + child.z
+    }
+  }
 }
 
 
@@ -128,4 +135,10 @@ class SpriteMap is Renderable {
     _map[_state].render(position + offset)
   }
   [v] { _map[v] }
+  z=(v) {
+    super.z = v
+    for (s in _map.keys) {
+      _map[s].z = v
+    }
+  }
 }
