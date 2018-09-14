@@ -33,6 +33,7 @@ class PhysicsComponent is Component {
     _pastPosition = Point.new(0, 0)
   }
   velocity { _velocity }
+  velocity=(v) { _velocity = v }
   acceleration { _acceleration }
   pastPosition { _pastPosition }
   pastPosition=(p) { _pastPosition = p }
@@ -73,6 +74,7 @@ class EnemyAIComponent is Component {
     _mode = "horizontal"
     _t = 0
     _dir = 1
+    _dist = 0
   }
   mode { _mode }
   mode=(v) { _mode = v }
@@ -80,6 +82,14 @@ class EnemyAIComponent is Component {
   t=(v) { _t = v }
   dir { _dir }
   dir=(v) { _dir = v }
+  dist { _dist }
+  dist=(v) { _dist = v }
+  speed { _speed }
+  speed=(v) { _speed = v }
+  deviation { _deviation }
+  deviation=(v) { _deviation = v }
+  clock { _clock }
+  clock=(v) { _clock = v }
 }
 
 

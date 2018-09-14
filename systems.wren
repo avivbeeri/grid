@@ -130,65 +130,83 @@ class EnemyAISystem is GameSystem {
 
     for (entity in entities) {
       var collided = false
+      var position = entity.getComponent(PositionComponent)
+      var collider = entity.getComponent(ColliderComponent)
+      var ai = entity.getComponent(EnemyAIComponent)
+      var physics = entity.getComponent(PhysicsComponent)
+
       for (event in events) {
         if ((event.e1 == player.id && event.e2 == entity.id) || (event.e1 == entity.id && event.e2 == player.id)) {
           collided = true
+          if (!ai.deviation) {
+            ai.deviation = position.point
+          }
         }
       }
-      var position = entity.getComponent(PositionComponent)
-      var physics = entity.getComponent(PhysicsComponent)
-      var ai = entity.getComponent(EnemyAIComponent)
-      if (!collided) {
-        physics.acceleration.x = 0
-        physics.acceleration.y = 0
-        physics.velocity.x = 0
-        physics.velocity.y = 0
-        var velocity = physics.velocity
 
-        if (ai.mode == "horizontal") {
-          velocity.x = ai.dir
-          if ((ai.dir > 0 && position.x >= Canvas.width-16) || (ai.dir < 1 && position.x <= 0)) {
-            ai.mode = "vertical"
+      var velocity = physics.velocity
+      physics.velocity.x = 0
+      physics.velocity.y = 0
+      if (!collided) {
+        // Have we deviated?
+        if (ai.deviation) {
+          var diff = ai.deviation - position.point
+          physics.velocity.x = sign(diff.x)
+          physics.velocity.y = sign(diff.y)
+
+          if (diff.x.abs < 1 && diff.y.abs < 1) {
+            ai.deviation = null
           }
-        } else if (ai.mode == "vertical") {
-          velocity.y = 1
+        } else {
+
+          // else patrol
           ai.t = ai.t + 1
-          if (ai.t >= 32) {
-            ai.mode = "horizontal"
-            ai.dir = -ai.dir
-            ai.t = 0
+          if (ai.mode == "horizontal") {
+            velocity.x = ai.dir * ai.speed
           }
-          if (position.y >= Canvas.height - 16) {
-            ai.dir = -ai.dir
-            ai.t = 0
-            ai.mode = "reverse"
+          if (ai.mode == "vertical") {
+            velocity.y = ai.dir * ai.speed
           }
-        } else if (ai.mode == "reverse") {
-          velocity.y = -1
-          if (position.y <= 0) {
-            ai.mode = "horizontal"
+          if (ai.t * ai.speed > ai.dist*8 ) {
+            ai.t = 0
+            ai.dir = -ai.dir
           }
         }
       } else {
           // get player entity
           var playerPosition = player.getComponent(PositionComponent).point
+          var playerBox = player.getComponent(ColliderComponent).box.pos
 
-          var x = (position.x+8) - (playerPosition.x + 8)
-          if (x < 0) {
+          var x = (position.x+collider.box.pos.x) - (playerPosition.x + playerBox.x) + 3
+          var y = (position.y + collider.box.pos.y) - (playerPosition.y + playerBox.y) - 8
+
+          var e = 1
+          if (x < -e) {
             x = -1
-            ai.t = 0
-          } else if (x > 0) {
+          } else if (x > e) {
             x = 1
-            ai.t = 0
           } else {
             x = 0
-            ai.t = ai.t + 1
-            if (ai.t > 60) {
-              world.bus.publish(DetectionEvent.new())
-
-            }
           }
-          physics.velocity.x = -x / 2
+
+          if (y < -e) {
+            y = -1
+          } else if (y > e) {
+            y = 1
+          } else {
+            y = 0
+          }
+
+          if (x == 0 && y == 0) {
+            ai.clock = ai.clock + 1
+            if (ai.clock > 60) {
+              world.bus.publish(DetectionEvent.new())
+            }
+          } else {
+            ai.clock = 0
+          }
+          physics.velocity.x = -x * 0.7
+          physics.velocity.y = -y * 0.7
       }
       if (collided) {
     entity.getComponent(RenderComponent).renderable.children[0].state = "active"
@@ -196,6 +214,16 @@ class EnemyAISystem is GameSystem {
     entity.getComponent(RenderComponent).renderable.children[0].state = "normal"
       }
     }
+  }
+
+  sign(x) {
+    if (x < 0) {
+      return -1
+    }
+    if (x > 0) {
+      return 1
+    }
+    return 0
   }
 }
 
@@ -357,11 +385,15 @@ class ColliderRenderSystem is GameSystem {
   }
 
   update() {
+    var player = world.getEntityByTag("player").getComponent(PositionComponent).point
+    var screenX = (player.x / Canvas.width).floor
+    var screenY = (player.y / Canvas.height).floor
+    var cameraOffset = Point.new(screenX * -40 * 8, screenY * -30 * 8)
     for (entity in entities) {
       var position = entity.getComponent(PositionComponent).point
       var collider = entity.getComponent(ColliderComponent).box
 
-      var start = position + collider.pos
+      var start = position + collider.pos + cameraOffset
 
       Canvas.rectfill(start.x, start.y, collider.size.x, collider.size.y, Color.new(255, 0, 0, 255*0.10))
     }

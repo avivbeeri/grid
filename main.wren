@@ -141,7 +141,7 @@ class MainGame is EventListener {
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
     _world.bus.subscribe(this, DetectionEvent)
-    // _world.addRenderSystem(ColliderRenderSystem)
+    _world.addRenderSystem(ColliderRenderSystem)
 
     // Create player
     _player = _world.newEntity()
@@ -157,8 +157,8 @@ class MainGame is EventListener {
       "running-up": Animation.new(_ghostRunningUp, Point.new(16,32), 5),
       "running-down": Animation.new(_ghostRunningDown, Point.new(16,32), 5)
     })))
-    _player.getComponent(ColliderComponent).box = AABB.new(0, 16, 16, 16)
-    // _player.getComponent(RenderComponent).renderables[0]
+    _player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 16)
+    _player.getComponent(RenderComponent).renderable.offset = Point.new(0, -16)
 
 
     // Create tilemap
@@ -189,10 +189,14 @@ class MainGame is EventListener {
     // Enemy
     _enemy = _world.newEntity()
     _enemy.addComponents([PositionComponent, RenderComponent, EnemyAIComponent, ColliderComponent, PhysicsComponent, ActiveComponent])
-    _enemy.getComponent(PositionComponent).x = 90
-    _enemy.getComponent(PositionComponent).y = 20
+    _enemy.getComponent(PositionComponent).x = 40*1*8 + 10
+    _enemy.getComponent(PositionComponent).y = 30*2*8 + 40
     _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
     _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
+    var ai = _enemy.getComponent(EnemyAIComponent)
+    ai.mode = "horizontal"
+    ai.dist = 10
+    ai.speed = 0.5
     _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
       "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
       "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
