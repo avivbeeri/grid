@@ -247,8 +247,34 @@ class PlayerControlSystem is GameSystem {
 class ScrollSystem is GameSystem {
   construct init(world) {
     super(world, [PositionComponent])
+    _screenCache = null
   }
+
+  clearEntityCache() {
+    super.clearEntityCache()
+    _screenCache = null
+  }
+
+  hash(x, y) {
+    var a = x
+    var b = y
+    return a >= b ? a * a + a + b : a + b * b;
+  }
+
   update() {
+    if (!_screenCache) {
+      _screenCache = {}
+      for (entity in world.entities) {
+        var position = entity.getComponent(PositionComponent).point
+        var screenX = (position.x / Canvas.width).floor
+        var screenY = (position.y / Canvas.height).floor
+        if (!_screenCache[hash(screenX, screenY)]) {
+          _screenCache[hash(screenX, screenY)] = []
+        }
+        _screenCache[hash(screenX, screenY)].add(entity)
+      }
+    }
+
     var player = world.getEntityByTag("player").getComponent(PositionComponent).point
     var playerPast = world.getEntityByTag("player").getComponent(PhysicsComponent).pastPosition
     var screenX = (player.x / Canvas.width).floor
