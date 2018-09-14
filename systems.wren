@@ -67,13 +67,25 @@ class TestEventSystem is GameSystem {
   }
 
   update() {
+    var doorId = world.getEntityByTag("door").id
+    var playerId = world.getEntityByTag("player").id
     for (event in events) {
-      // System.print("%(event.e1) -> %(event.e2)")
+      if ((event.e1 == doorId && event.e2 == playerId) ||
+          (event.e2 == doorId && event.e1 == playerId)) {
+        world.bus.publish(CompletionEvent.new())
+      }
     }
   }
 }
 
 class DetectionEvent is Event {
+  construct new(level) {
+    _level = level
+  }
+  level { _level }
+}
+
+class CompletionEvent is Event {
   construct new() {}
 }
 
@@ -140,6 +152,7 @@ class EnemyAISystem is GameSystem {
           collided = true
           if (!ai.deviation) {
             ai.deviation = position.point
+            world.bus.publish(DetectionEvent.new("low"))
           }
         }
       }
@@ -200,7 +213,7 @@ class EnemyAISystem is GameSystem {
           if (x == 0 && y == 0) {
             ai.clock = ai.clock + 1
             if (ai.clock > 60) {
-              world.bus.publish(DetectionEvent.new())
+              world.bus.publish(DetectionEvent.new("high"))
             }
           } else {
             ai.clock = 0

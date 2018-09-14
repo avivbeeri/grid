@@ -11,7 +11,6 @@ import "./renderables" for Rect, Sprite, Animation, SpriteMap, SpriteGroup, Elli
 
 import "./toml/toml" for Toml
 import "./toml/toml-map-builder" for TomlMapBuilder
-import "./gameover" for GameOverState
 
 
 import "./systems" for
@@ -24,7 +23,8 @@ import "./systems" for
   ColliderRenderSystem,
   ColliderResolutionSystem,
   RenderSystem,
-  DetectionEvent
+  DetectionEvent,
+  CompletionEvent
 
 import "./components" for
   ActiveComponent,
@@ -42,8 +42,6 @@ var Yellow = Color.rgb(255, 162, 00, 255)
 
 class TileMap {
   construct load(imageFileName, tileMapFileName, collisionMapFileName) {
-    __tileMapWidth = (Canvas.width / 8) * 3
-    __tileMapHeight = (Canvas.height / 8) * 3
     _image = ImageData.loadFromFile(imageFileName)
     _tileMapFile = FileSystem.loadSync(tileMapFileName)
     _collisionMapFile = FileSystem.loadSync(collisionMapFileName)
@@ -60,15 +58,19 @@ class TileMap {
   }
 
   getTileAt(x, y) {
-    return _tileMap[y * __tileMapWidth + x]
+    return _tileMap[y * TileMap.width + x]
   }
 
   isSolidAt(x, y) {
-    return _collisionMap[y * __tileMapWidth + x]
+    return _collisionMap[y * TileMap.width + x]
   }
 
-  static width { __tileMapWidth }
-  static height { __tileMapHeight }
+  static width {
+    return (Canvas.width / 8) * 3
+  }
+  static height {
+    return (Canvas.height / 8) * 3
+  }
 
 }
 
@@ -95,11 +97,10 @@ class Game {
 
   }
   static update() {
-
     if (__state) {
       __state.update()
       if (__state.next) {
-        __state = __state.next.init()
+        __state = __state.next
       }
     }
   }
@@ -116,6 +117,8 @@ class MainGame is EventListener {
   next { _next}
 
   construct init(tileMap) {
+    _tileMap = tileMap
+    _score = 0
     _next = null
     _t = 0
     _ghostStanding = ImageData.loadFromFile("res/ghost-standing.png")
@@ -140,16 +143,18 @@ class MainGame is EventListener {
     _world.addSystem(ScrollSystem)
     _world.addSystem(TestEventSystem)
     _world.addRenderSystem(RenderSystem)
+    _world.addRenderSystem(ColliderRenderSystem)
+
     _world.bus.subscribe(this, DetectionEvent)
-    // _world.addRenderSystem(ColliderRenderSystem)
+    _world.bus.subscribe(this, CompletionEvent)
 
     // Create player
     _player = _world.newEntity()
     _world.setEntityTag("player", _player)
 
     _player.addComponents([ActiveComponent, PositionComponent, RenderComponent, PlayerControlComponent, PhysicsComponent, ColliderComponent])
-    _player.getComponent(PositionComponent).x = Game.gameData["entities"][0]["position"]["x"]
-    _player.getComponent(PositionComponent).y = Game.gameData["entities"][0]["position"]["y"]
+    _player.getComponent(PositionComponent).x = 472
+    _player.getComponent(PositionComponent).y = 670
     _player.setComponent(RenderComponent.new(_player.id, SpriteMap.new("standing", {
       "standing": Sprite.new(_ghostStanding, Point.new(16,32)),
       "running-left": Animation.new(_ghostRunningLeft, Point.new(16,32), 5),
@@ -168,7 +173,6 @@ class MainGame is EventListener {
     var tileHeight = TileMap.height
     for (y in 0...tileHeight) {
       for (x in 0...tileWidth) {
-        // var tileData = tileMap[y * tileWidth + x]
         if (tileMap.getTileAt(x, y) > -1) {
           var tile = _world.newEntity()
           tile.addComponents([PositionComponent, RenderComponent, TileComponent])
@@ -265,6 +269,14 @@ class MainGame is EventListener {
 
     _truck.getComponent(RenderComponent).renderable["standing-on"].setSrc(80, 0, 80, 40)
     _truck.getComponent(RenderComponent).renderable.z = -1
+
+      _door = _world.newEntity()
+      _world.setEntityTag("door", _door)
+      _door.addComponents([PositionComponent, ColliderComponent])
+      _door.getComponent(PositionComponent).point.x = 59 * tileSize
+      _door.getComponent(PositionComponent).point.y = 11 * tileSize
+      _door.getComponent(ColliderComponent).box = AABB.new(0, 0, tileSize*2, tileSize)
+      _door.getComponent(ColliderComponent).type = ColliderComponent.Trigger
   }
 
   update() {
@@ -273,7 +285,13 @@ class MainGame is EventListener {
     for (event in events) {
       System.print(event)
       if (event is DetectionEvent) {
-        _next = GameOverState
+        if (event.level == "low") {
+          _score = _score + 1
+        } else {
+          _next = GameOverState.init(_tileMap, _score)
+        }
+      } else if (event is CompletionEvent) {
+        _next = NextMissionState.init(_tileMap, _score)
       }
     }
     clearEvents()
@@ -285,3 +303,55 @@ class MainGame is EventListener {
   }
 }
 
+// State displays a "Game Over" message and allows a restart
+class GameOverState {
+  next { _next}
+  construct init(tileMap, score) {
+    _next = null
+    _hold = 0
+    _score = score
+    _tileMap = tileMap
+  }
+  update() {
+    if (Keyboard.isKeyDown("space")) {
+      _hold = _hold + 1
+      if (_hold > 4) {
+        _next = MainGame.init(_tileMap)
+      }
+    } else {
+      _hold = 0
+    }
+  }
+
+  draw(dt) {
+    Canvas.cls()
+    Canvas.print("Game Over", 160-27, 120-3, Color.white)
+    Canvas.print("You were detected %(_score) times", 0, 120+5, Color.white)
+  }
+}
+
+class NextMissionState {
+  next { _next}
+  construct init(tileMap, score) {
+    _next = null
+    _hold = 0
+    _score = score
+    _tileMap = tileMap
+  }
+  update() {
+    if (Keyboard.isKeyDown("space")) {
+      _hold = _hold + 1
+      if (_hold > 4) {
+        _next = MainGame.init(_tileMap)
+      }
+    } else {
+      _hold = 0
+    }
+  }
+
+  draw(dt) {
+    Canvas.cls()
+    Canvas.print("Mission Success", 160-27, 120-3, Color.white)
+    Canvas.print("You were detected %(_score) times", 0, 120+5, Color.white)
+  }
+}
