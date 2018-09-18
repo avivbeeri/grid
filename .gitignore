@@ -10,3 +10,6 @@ Grid
 Screenshots
 
 res/ase
+release/
+*.dylib
+
