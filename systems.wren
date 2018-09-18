@@ -6,6 +6,9 @@ import "./renderables" for Rect, Sprite
 import "./ecs/gamesystem" for GameSystem
 import "./ecs/events" for Event, EventListener
 
+var FPS = 60
+var DT = (1/FPS)
+
 import "./components" for
   ActiveComponent,
   PositionComponent,
@@ -45,11 +48,11 @@ class PhysicsSystem is GameSystem {
       var position = entity.getComponent(PositionComponent)
       physics.pastPosition = position.point
 
-      velocity.x = velocity.x + acceleration.x
-      velocity.y = velocity.y + acceleration.y
+      velocity.x = velocity.x + acceleration.x * DT
+      velocity.y = velocity.y + acceleration.y * DT
 
-      position.x = position.x + velocity.x
-      position.y = position.y + velocity.y
+      position.x = position.x + velocity.x * DT
+      position.y = position.y + velocity.y * DT
 
       var collider = entity.getComponent(ColliderComponent)
       if (collider) {
@@ -226,6 +229,8 @@ class EnemyAISystem is GameSystem {
       } else {
     entity.getComponent(RenderComponent).renderable.children[0].state = "normal"
       }
+      physics.velocity.x = physics.velocity.x * FPS
+      physics.velocity.y = physics.velocity.y * FPS
     }
   }
 
@@ -276,8 +281,8 @@ class PlayerControlSystem is GameSystem {
       if (Keyboard.isKeyDown("space")) {
       }
 
-      velocity.x = x
-      velocity.y = y
+      velocity.x = x * FPS
+      velocity.y = y * FPS
     }
   }
 }

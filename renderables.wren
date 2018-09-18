@@ -101,8 +101,8 @@ class Animation is Sprite {
   render(position) {
     var out = position + offset
     super.render(out)
-    _t = _t + 1
-    if (_t > _frameLength) {
+    _t = _t + 1/60
+    if (_t > _frameLength * (1/60)) {
       x = (x + _size.x) % image.width
       _t = 0
     }
