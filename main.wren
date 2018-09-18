@@ -288,18 +288,12 @@ class GameOverState {
   next { _next}
   construct init(tileMap, score) {
     _next = null
-    _hold = 0
     _score = score
     _tileMap = tileMap
   }
   update() {
     if (Keyboard.isKeyDown("space")) {
-      _hold = _hold + 1
-      if (_hold > 4) {
-        _next = MainGame.init(_tileMap)
-      }
-    } else {
-      _hold = 0
+      _next = MainGame.init(_tileMap)
     }
   }
 
@@ -307,6 +301,7 @@ class GameOverState {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
     Canvas.print("You were detected %(_score) times", 160 - (9*8), 120+16, Color.white)
+    Canvas.print("Press SPACE to Restart", 160-(14*4), 200, Color.white)
   }
 }
 
@@ -314,18 +309,12 @@ class NextMissionState {
   next { _next}
   construct init(tileMap, score) {
     _next = null
-    _hold = 0
     _score = score
     _tileMap = tileMap
   }
   update() {
     if (Keyboard.isKeyDown("space")) {
-      _hold = _hold + 1
-      if (_hold > 4) {
-        _next = MainGame.init(_tileMap)
-      }
-    } else {
-      _hold = 0
+      _next = MainGame.init(_tileMap)
     }
   }
 
@@ -333,6 +322,8 @@ class NextMissionState {
     Canvas.cls()
     Canvas.print("Mission Success", 160-27, 120-3, Color.white)
     Canvas.print("You were detected %(_score) times", 160-(9*8), 120+16, Color.white)
+    Canvas.print("Thank you for playing, more missions will follow", 10, 120+24, Color.white)
+    Canvas.print("Press SPACE to Restart", 160-(14*4), 200, Color.white)
   }
 }
 
@@ -340,7 +331,6 @@ class TitleState {
   next { _next}
   construct init(tileMap) {
     _next = null
-    _hold = 0
     _tileMap = tileMap
     _image = ImageData.loadFromFile("res/title.png")
     _state = null
@@ -348,14 +338,9 @@ class TitleState {
     AudioEngine.play("music2", 1, true)
   }
   update() {
-    if (Keyboard.isKeyDown("space")) {
-      _hold = _hold + 1
-      if (_hold > 4 && _state) {
-        _next = _state
-      }
-    } else {
-      _state = _state || MainGame.init(_tileMap)
-      _hold = 0
+    _state = _state || MainGame.init(_tileMap)
+    if (_state && Keyboard.isKeyDown("space")) {
+      _next = _state
     }
   }
 
@@ -363,7 +348,7 @@ class TitleState {
     Canvas.cls()
     _image.draw(0,0)
     if (_state) {
-      Canvas.print("Hold SPACE to Start", 160-(14*4), 200, Color.white)
+      Canvas.print("Press SPACE to Start", 160-(14*4), 200, Color.white)
     }
   }
 }
