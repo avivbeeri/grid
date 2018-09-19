@@ -279,7 +279,7 @@ class MainGame is EventListener {
   }
 
   draw(dt) {
-    _world.render()
+    _world.render(dt)
   }
 }
 

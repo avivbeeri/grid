@@ -354,7 +354,7 @@ class RenderSystem is GameSystem {
     _minLayer = 0
     _maxLayer = 0
   }
-  update() {
+  update(dt) {
     Canvas.cls(Color.black)
 
     var layers = _layers
@@ -398,8 +398,15 @@ class RenderSystem is GameSystem {
     for (i in _minLayer.._maxLayer) {
       if (layers[i]) {
         for (obj in layers[i]) {
-          var position = obj["entity"].getComponent(PositionComponent).point
-          obj["r"].render(obj["offset"] + position + cameraOffset)
+          var entity = obj["entity"]
+          var position = entity.getComponent(PositionComponent).point
+          var physics = entity.getComponent(PhysicsComponent)
+          var velocity = Point.new(0, 0)
+          if (physics) {
+            velocity.x = physics.velocity.x * dt
+            velocity.y = physics.velocity.y * dt
+          }
+          obj["r"].render(obj["offset"] + position + cameraOffset + velocity)
         }
       }
     }

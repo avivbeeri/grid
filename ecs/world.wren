@@ -122,9 +122,9 @@ class World {
     }
   }
 
-  render() {
+  render(dt) {
     for (system in _renderSystems) {
-      system.update()
+      system.update(dt)
     }
   }
 }
