@@ -1,7 +1,7 @@
 import "graphics" for Canvas, Color, Point
 
 class Renderable {
-  render(position) {}
+  render(dt, position) {}
   children { [] }
   offset { _offset || Point.new(0,0) }
   offset=(v) { _offset = v }
@@ -26,7 +26,7 @@ class Sprite is Renderable {
     setSrc(0, 0, size.x, size.y)
   }
 
-  render(position) {
+  render(dt, position) {
     var out = position + offset
     _image.drawArea(_x, _y, _w, _h, out.x, out.y)
   }
@@ -53,7 +53,7 @@ class Ellipse is Renderable {
     _b = b
   }
 
-  render(position) {
+  render(dt, position) {
     var out = position + offset
     Canvas.ellipsefill(out.x, out.y, out.x+_a, out.y+_b, _color)
   }
@@ -79,7 +79,7 @@ class Rect is Renderable {
     _height = h
   }
 
-  render(position) {
+  render(dt, position) {
     var out = position + offset
     Canvas.rectfill(out.x, out.y, width, height, color)
   }
@@ -95,17 +95,22 @@ class Animation is Sprite {
     _size = size
     setSrc(0, 0, size.x, size.y)
     _t = 0
+    _current = 0
     _frameLength = speed
   }
 
-  render(position) {
+  render(dt, position) {
     var out = position + offset
-    super.render(out)
-    _t = _t + 1/60
-    if (_t > _frameLength * (1/60)) {
+    super.render(dt, out)
+    if (_current > dt) {
+      _t = _t + 1
+    }
+    var time = _t + dt*(1/60)
+    if (_t > _frameLength) {
       x = (x + _size.x) % image.width
       _t = 0
     }
+    _current = dt
   }
 }
 
@@ -114,9 +119,9 @@ class SpriteGroup is Renderable {
     _list = renderables[0..-1]
   }
 
-  render(position) {
+  render(dt, position) {
     for (r in _list) {
-      r.render(position + offset)
+      r.render(dt, position + offset)
     }
   }
 
@@ -131,8 +136,8 @@ class SpriteMap is Renderable {
 
   state=(v) { _state = v }
 
-  render(position) {
-    _map[_state].render(position + offset)
+  render(dt, position) {
+    _map[_state].render(dt, position + offset)
   }
   [v] { _map[v] }
   z=(v) {

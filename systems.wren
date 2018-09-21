@@ -406,7 +406,7 @@ class RenderSystem is GameSystem {
             velocity.x = physics.velocity.x * dt
             velocity.y = physics.velocity.y * dt
           }
-          obj["r"].render(obj["offset"] + position + cameraOffset + velocity)
+          obj["r"].render(dt, obj["offset"] + position + cameraOffset + velocity)
         }
       }
     }
