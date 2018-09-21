@@ -136,10 +136,10 @@ class MainGame is EventListener {
     _player.getComponent(PositionComponent).y = 670
     _player.setComponent(RenderComponent.new(_player.id, SpriteMap.new("standing", {
       "standing": Sprite.new(_ghostStanding, Point.new(16,32)),
-      "running-left": Animation.new(_ghostRunningLeft, Point.new(16,32), 5),
-      "running-right": Animation.new(_ghostRunningRight, Point.new(16,32), 5),
-      "running-up": Animation.new(_ghostRunningUp, Point.new(16,32), 5),
-      "running-down": Animation.new(_ghostRunningDown, Point.new(16,32), 5)
+      "running-left": Animation.new(_ghostRunningLeft, Point.new(16,32), 3),
+      "running-right": Animation.new(_ghostRunningRight, Point.new(16,32), 3),
+      "running-up": Animation.new(_ghostRunningUp, Point.new(16,32), 3),
+      "running-down": Animation.new(_ghostRunningDown, Point.new(16,32), 3)
     })))
     _player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 16)
     _player.getComponent(RenderComponent).renderable.offset = Point.new(0, -16)
