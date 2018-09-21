@@ -339,6 +339,17 @@ class ScrollSystem is GameSystem {
   }
 }
 
+class RenderableUpdateSystem is GameSystem {
+  construct init(world) {
+    super(world, [PositionComponent, RenderComponent, ActiveComponent])
+  }
+
+  update() {
+    for (entity in entities) {
+      entity.getComponent(RenderComponent).renderable.update()
+    }
+  }
+}
 
 class RenderSystem is GameSystem {
   min(a, b) {

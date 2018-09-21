@@ -2,6 +2,11 @@ import "graphics" for Canvas, Color, Point
 
 class Renderable {
   render(dt, position) {}
+  update() {
+    for (child in children) {
+      child.update()
+    }
+  }
   children { [] }
   offset { _offset || Point.new(0,0) }
   offset=(v) { _offset = v }
@@ -99,18 +104,20 @@ class Animation is Sprite {
     _frameLength = speed
   }
 
+  update() {
+    _t = _t + (1/60)
+  }
+
   render(dt, position) {
     var out = position + offset
     super.render(dt, out)
-    if (_current > dt) {
-      _t = _t + 1
-    }
-    var time = _t + dt*(1/60)
+    // if (_current < dt) {
+      // _t = _t + (dt - _current)
+    // }
     if (_t > _frameLength) {
       x = (x + _size.x) % image.width
       _t = 0
     }
-    _current = dt
   }
 }
 
@@ -145,5 +152,8 @@ class SpriteMap is Renderable {
     for (s in _map.keys) {
       _map[s].z = v
     }
+  }
+  update() {
+    _map[_state].update()
   }
 }

@@ -19,6 +19,7 @@ import "./systems" for
   ColliderRenderSystem,
   ColliderResolutionSystem,
   RenderSystem,
+  RenderableUpdateSystem,
   DetectionEvent,
   CompletionEvent
 
@@ -121,6 +122,8 @@ class MainGame is EventListener {
     _world.addSystem(ColliderResolutionSystem)
     _world.addSystem(ScrollSystem)
     _world.addSystem(TestEventSystem)
+
+    _world.addSystem(RenderableUpdateSystem)
     _world.addRenderSystem(RenderSystem)
     // _world.addRenderSystem(ColliderRenderSystem)
 
@@ -136,10 +139,10 @@ class MainGame is EventListener {
     _player.getComponent(PositionComponent).y = 670
     _player.setComponent(RenderComponent.new(_player.id, SpriteMap.new("standing", {
       "standing": Sprite.new(_ghostStanding, Point.new(16,32)),
-      "running-left": Animation.new(_ghostRunningLeft, Point.new(16,32), 3),
-      "running-right": Animation.new(_ghostRunningRight, Point.new(16,32), 3),
-      "running-up": Animation.new(_ghostRunningUp, Point.new(16,32), 3),
-      "running-down": Animation.new(_ghostRunningDown, Point.new(16,32), 3)
+      "running-left": Animation.new(_ghostRunningLeft, Point.new(16,32), 1/12),
+      "running-right": Animation.new(_ghostRunningRight, Point.new(16,32), 1/12),
+      "running-up": Animation.new(_ghostRunningUp, Point.new(16,32), 1/12),
+      "running-down": Animation.new(_ghostRunningDown, Point.new(16,32), 1/12)
     })))
     _player.getComponent(ColliderComponent).box = AABB.new(0, 0, 16, 16)
     _player.getComponent(RenderComponent).renderable.offset = Point.new(0, -16)
@@ -175,6 +178,7 @@ class MainGame is EventListener {
     var enemyData = [
       // [x, y, mode, dist, speed, t, dir]
       [59, 70, "vertical", 0, 0, 0, 1],
+      /*
       [42, 63, "vertical", 10, 0.5, 0, 1],
       [77, 68, "vertical", 10, 0.5, 5, -1],
 
@@ -200,6 +204,7 @@ class MainGame is EventListener {
 
       [114, 66, "horizontal", 30, 0.75, 0, -1],
       [86, 70, "horizontal", 30, 0.75, 0, 1],
+      */
     ]
 
     for (data in enemyData) {
@@ -209,8 +214,8 @@ class MainGame is EventListener {
       _enemy.getComponent(ColliderComponent).box = AABB.new(-4, 47, tileSize*3+1, 12)
       _enemy.getComponent(ColliderComponent).type = ColliderComponent.Trigger
       _enemy.setComponent(RenderComponent.new(_enemy.id, SpriteGroup.new([SpriteMap.new("normal", {
-        "normal": Animation.new(_droneSprite, Point.new(16,16), 1),
-        "active": Animation.new(_droneActiveSprite, Point.new(16,16), 1),
+        "normal": Animation.new(_droneSprite, Point.new(16,16), (1/18)),
+        "active": Animation.new(_droneActiveSprite, Point.new(16,16), (1/18)),
       }), Ellipse.new(Color.new(95,87,79, 255), 24, 10)]), -1))
       _enemy.getComponent(RenderComponent).renderable.offset = Point.new(0, 0)
       _enemy.getComponent(RenderComponent).renderable.children[1].offset = Point.new(-4, 47)
