@@ -178,7 +178,6 @@ class MainGame is EventListener {
     var enemyData = [
       // [x, y, mode, dist, speed, t, dir]
       [59, 70, "vertical", 0, 0, 0, 1],
-      /*
       [42, 63, "vertical", 10, 0.5, 0, 1],
       [77, 68, "vertical", 10, 0.5, 5, -1],
 
@@ -204,7 +203,6 @@ class MainGame is EventListener {
 
       [114, 66, "horizontal", 30, 0.75, 0, -1],
       [86, 70, "horizontal", 30, 0.75, 0, 1],
-      */
     ]
 
     for (data in enemyData) {
