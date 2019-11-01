@@ -1,4 +1,5 @@
 import "input" for Keyboard
+import "dome" for Process
 import "graphics" for Canvas, Color, Point
 import "./util" for AABB
 import "./renderables" for Rect, Sprite
@@ -6,8 +7,8 @@ import "./renderables" for Rect, Sprite
 import "./ecs/gamesystem" for GameSystem
 import "./ecs/events" for Event, EventListener
 
-var FPS = 60
-var DT = (1/FPS)
+var FPS = 60 // Frames per second
+var DT = (1/FPS) // Seconds per frame
 
 import "./components" for
   ActiveComponent,
@@ -260,6 +261,9 @@ class PlayerControlSystem is GameSystem {
       var stand = 0
       sprite.state = "standing"
 
+      if (Keyboard.isKeyDown("escape")) {
+        Process.exit()
+      }
       if (Keyboard.isKeyDown("left")) {
         x = x - 1
         stand = 48
@@ -414,8 +418,8 @@ class RenderSystem is GameSystem {
           var physics = entity.getComponent(PhysicsComponent)
           var velocity = Point.new(0, 0)
           if (physics) {
-            velocity.x = physics.velocity.x * dt
-            velocity.y = physics.velocity.y * dt
+            velocity.x = physics.velocity.x * dt * (1/1000)
+            velocity.y = physics.velocity.y * dt * (1/1000)
           }
           obj["r"].render(dt, obj["offset"] + position + cameraOffset + velocity)
         }
