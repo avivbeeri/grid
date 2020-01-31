@@ -20,7 +20,6 @@ import "./components" for
   EnemyAIComponent,
   RenderComponent
 
-var Yellow = Color.rgb(255, 162, 00, 255)
 /*
  DEPRECIATED
 class TileSystem is GameSystem {

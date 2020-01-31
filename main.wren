@@ -34,9 +34,6 @@ import "./components" for
   RenderComponent
 
 
-var Yellow = Color.rgb(255, 162, 00, 255)
-
-
 class TileMap {
   construct load(imageFileName, tileMapFileName, collisionMapFileName) {
     _image = ImageData.loadFromFile(imageFileName)
